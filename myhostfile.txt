@@ -1,1 +1,1 @@
-localhost:50
+localhost slots=50

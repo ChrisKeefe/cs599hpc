@@ -8,12 +8,10 @@
 
 
 //Example compilation
-//mpicc comm_pingpong_starter.c -lm -o comm_pingpong_starter
+//mpicc pingpong_act1_crk239.c -lm -o pingpong
 
 //Example execution
-//mpirun -np 2 -hostfile myhostfile.txt ./comm_pingpong_starter
-
-
+//mpirun -np 4 -hostfile ../myhostfile.txt ./pingpong
 
 
 int main(int argc, char **argv) {
