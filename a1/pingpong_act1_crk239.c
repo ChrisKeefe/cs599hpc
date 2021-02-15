@@ -34,9 +34,23 @@ int main(int argc, char **argv) {
   }
 
   //Write code here
-  
-
-
+  int recv_buff;
+  int recv_counter = 0;
+  int i;
+  for (i = 0; i < 5; i++){
+    if (my_rank % 2 == 0){
+      MPI_Send(&my_rank, 1, MPI_INT, my_rank + 1, 0, MPI_COMM_WORLD);
+      MPI_Recv(&recv_buff, 1, MPI_INT, my_rank + 1, 0, MPI_COMM_WORLD,
+               MPI_STATUS_IGNORE);
+      recv_counter = recv_counter + recv_buff;
+    } else {
+      MPI_Recv(&recv_buff, 1, MPI_INT, my_rank - 1, 0, MPI_COMM_WORLD,
+               MPI_STATUS_IGNORE);
+      recv_counter = recv_counter + recv_buff;
+      MPI_Send(&my_rank, 1, MPI_INT, my_rank - 1, 0, MPI_COMM_WORLD);
+    }
+  }
+  printf("Rank %d received the value %d\n", my_rank, recv_counter);
 
   MPI_Finalize();
   return 0;
