@@ -8,14 +8,14 @@
 #SBATCH --cpus-per-task=1
 
 PREFIX='/scratch/crk239/cs599hpc'
-ASSIGN='a1'
-ACTIVITY='a1'
+ASSIGN='1'
+ACTIVITY='1'
 INFILE='pingpong_act1_crk239.c'
 OUTFILE='pingpong'
 
 
 module load openmpi
 
-mpicc ${PREFIX}/${ASSIGN}/${ACTIVITY}/${INFILE} -lm -o ${PREFIX}/${ASSIGN}/${ACTIVITY}/${OUTFILE}
+mpicc ${PREFIX}/a${ASSIGN}/a${ACTIVITY}/${INFILE} -lm -o ${PREFIX}/a${ASSIGN}/a${ACTIVITY}/${OUTFILE}
 
-srun ${PREFIX}/${ASSIGN}/${ACTIVITY}/${OUTFILE}
+srun ${PREFIX}/a${ASSIGN}/a${ACTIVITY}/${OUTFILE}
