@@ -9,6 +9,7 @@ OUTFILE='pingpong'
 #SBATCH --job-name=ping_pong
 #SBATCH --output=${PREFIX}/${ASSIGN}${ACTIVITY}.out
 #SBATCH --error=${PREFIX}/${ASSIGN}${ACTIVITY}.err
+#SBATCH --account=cs599-spr21
 #SBATCH --time=02:00				# 2 min
 #SBATCH --mem=2000
 #SBATCH --nodes=1
