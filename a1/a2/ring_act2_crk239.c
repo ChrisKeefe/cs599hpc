@@ -31,7 +31,32 @@ int main(int argc, char **argv) {
   }
 
   //Write code here
+  int i;
+  int recv_buff;
+  int recv_counter = 0;
 
+  for (i = 0; i < 10; i++){
+    if (my_rank == 0) {
+      MPI_Send(&my_rank, 1, MPI_INT, my_rank + 1, 0, MPI_COMM_WORLD);
+      // rank 0 must receive from the last rank
+      MPI_Recv(&recv_buff, 1, MPI_INT, nprocs - 1, 0, MPI_COMM_WORLD,
+               MPI_STATUS_IGNORE);
+      recv_counter = recv_counter + recv_buff;
+    } else if (my_rank == nprocs - 1){
+      MPI_Recv(&recv_buff, 1, MPI_INT, my_rank - 1, 0, MPI_COMM_WORLD,
+               MPI_STATUS_IGNORE);
+      recv_counter = recv_counter + recv_buff;
+      // last rank must send to 0
+      MPI_Send(&my_rank, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+    } else {
+      MPI_Recv(&recv_buff, 1, MPI_INT, my_rank - 1, 0, MPI_COMM_WORLD,
+               MPI_STATUS_IGNORE);
+      recv_counter = recv_counter + recv_buff;
+      MPI_Send(&my_rank, 1, MPI_INT, my_rank + 1, 0, MPI_COMM_WORLD);
+    }
+  }
+  // Print counter value after loop terminates
+  printf("Rank %d received the value %d\n", my_rank, recv_counter);
 
 
   MPI_Finalize();
