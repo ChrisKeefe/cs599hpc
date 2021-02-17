@@ -51,7 +51,6 @@ int main(int argc, char **argv) {
       MPI_Recv(&recv_buff, 1, MPI_INT, my_rank - 1, 0, MPI_COMM_WORLD, &status);
     }
     
-    MPI_Wait(&request, &status);
     recv_counter += recv_buff;
   }
 
