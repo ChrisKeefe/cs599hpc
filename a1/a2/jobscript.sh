@@ -1,17 +1,17 @@
 #!/bin/bash
 #SBATCH --account=cs599-spr21
 #SBATCH --job-name=ring2
-#SBATCH --time=02:00				# 2 min
+#SBATCH --time=01:00				# 1 min
 #SBATCH --mem=2000
 #SBATCH --nodes=1
-#SBATCH --ntasks=10
+#SBATCH --ntasks=6
 #SBATCH --cpus-per-task=1
 
 PREFIX='/scratch/crk239/cs599hpc'
 ASSIGN='1'
 ACTIVITY='2'
-INFILE='ring_act${ACTIVITY}_crk239.c'
-OUTFILE='ring${ACTIVITY}'
+INFILE=ring_act${ACTIVITY}_crk239.c
+OUTFILE=ring${ACTIVITY}
 
 module load openmpi
 

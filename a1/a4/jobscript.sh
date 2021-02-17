@@ -10,8 +10,8 @@
 PREFIX='/scratch/crk239/cs599hpc'
 ASSIGN='1'
 ACTIVITY='4'
-INFILE='random_act${ACTIVITY}_crk239.c'
-OUTFILE='random${ACTIVITY}'
+INFILE=random_act${ACTIVITY}_crk239.c
+OUTFILE=random${ACTIVITY}
 
 module load openmpi
 
