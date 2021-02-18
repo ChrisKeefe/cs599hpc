@@ -52,7 +52,6 @@ int main(int argc, char **argv) {
   for (i = 0; i < TOTALITER; i++){
     MPI_Bcast(&source_rank, 1, MPI_INT, root_rank, MPI_COMM_WORLD);
     MPI_Bcast(&dest_rank, 1, MPI_INT, root_rank, MPI_COMM_WORLD);
-    // printf("my_rank = %d, dest_rank = %d\n", my_rank, dest_rank);
 
     if(my_rank == dest_rank){
       MPI_Recv(&old_counter, 1, MPI_INT, source_rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -69,7 +68,7 @@ int main(int argc, char **argv) {
       MPI_Send(&dest_rank, 1, MPI_INT, root_rank, 0, MPI_COMM_WORLD);
 
 
-    } else if (my_rank == 0){
+    } else if (my_rank == root_rank){
       // Handle the initial case where root is also the source rank
       if (my_rank == source_rank){
         MPI_Send(&new_counter, 1, MPI_INT, dest_rank, 0, MPI_COMM_WORLD);
