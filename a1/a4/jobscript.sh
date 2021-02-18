@@ -3,8 +3,10 @@
 #SBATCH --job-name=random1
 #SBATCH --time=02:00				# 2 min
 #SBATCH --mem=2000
+#SBATCH --ntasks=50
+
+COMMENT="disabling the following slurm directives to reduce wait time"
 #SBATCH --nodes=1
-#SBATCH --ntasks=10
 #SBATCH --cpus-per-task=1
 
 PREFIX='/scratch/crk239/cs599hpc'
