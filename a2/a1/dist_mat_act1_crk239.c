@@ -12,7 +12,7 @@
 
 //Example execution
 //mpirun -np 1 -hostfile myhostfile.txt ./distance_matrix_starter 100000 90 100 MSD_year_prediction_normalize_0_1_100k.txt
-
+//mpirun -np 1 -hostfile ../myhostfile.txt ./dm 100 90 100 ../MSD_year_prediction_normalize_0_1_100k.txt
 
 
 //function prototypes
@@ -56,8 +56,8 @@ int main(int argc, char **argv) {
     MPI_Finalize();
     exit(0);
   }
-  //All ranks import dataset
   else
+  //All ranks import dataset
   {
    
     if (my_rank==0)
@@ -72,8 +72,10 @@ int main(int argc, char **argv) {
       dataset[i]=(double*)malloc(sizeof(double)*DIM);
     }
 
+    // import data set...
     int ret=importDataset(inputFname, N, dataset);
 
+    // ... failing fast if import fails.
     if (ret==1)
     {
       MPI_Finalize();
@@ -83,6 +85,42 @@ int main(int argc, char **argv) {
   }
 
   //Write code here
+  // at the start, every rank has a local copy of the data.
+
+  if (my_rank == 0){
+    // Each rank is responsible for computing all distances for N/nprocs rows (points)
+    int n_rows_per_rank = N / nprocs;
+    // If N isn't a multiple of nprocs, assign extra rows only to the last rank.
+    int n_rows_last_rank = n_rows_per_rank + N % nprocs;
+
+    printf("%d rows, %d ranks, %d rows per rank, except %d rows in the last rank\n",
+           N, nprocs, n_rows_per_rank, n_rows_last_rank );
+    // Use MPI_Scatter() to "assign" the work to each rank using MPI scatter
+    // Send row information, not raw data
+  }
+
+  // allocate memory on all ranks for an n_rows_per_rank x N cols subset of the dm
+  // This will stay distributed.
+  if (my_rank != nprocs - 1){
+    double *local_dm_block = (double *) malloc(sizeof(double) * n_rows_per_rank * N);
+  } else {
+    double *local_dm_block = (double *) malloc(sizeof(double) * n_rows_last_rank * N);
+  }
+
+  // Use MPI_Wtime() to begin timing on rank 0 only
+  double time = MPI_Wtime();
+  // Calculate distances
+
+  // Calculate local sums at each rank
+
+  // Use MPI_Wtime() to end timing on rank 0 only
+  time = MPI_Wtime() - time;
+  
+  // output the distance matrix (sequentially)
+
+  // Have rank 0 MPI_Reduce the local sums into a single global sum. 
+  // Report this in the writeup.
+
 
 
 
