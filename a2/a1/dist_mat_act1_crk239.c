@@ -15,7 +15,7 @@
 //function prototypes
 int importDataset(char *fname, int N, double **dataset);
 double euclidean_dist(double *pt_data_a, double *pt_data_b, unsigned int dim);
-void print_block(unsigned int n_rows_per_rank, unsigned int N, double *local_dm_block);
+void print_block(unsigned int local_dm_arr_len, unsigned int N, double *local_dm_block);
 
 int main(int argc, char **argv)
 {
@@ -87,10 +87,17 @@ int main(int argc, char **argv)
   // If N isn't a multiple of nprocs, assign extra rows only to the last rank.
   unsigned int n_rows_per_rank = N / nprocs;
   unsigned int n_rows_last_rank = n_rows_per_rank + N % nprocs;
+  if (my_rank == nprocs - 1)
+  {
+    n_rows_per_rank = n_rows_last_rank;
+  }
   unsigned int loc_start_idx = 0;
   unsigned int start_indices[nprocs];
   unsigned int dm_idx = 0;
-
+  unsigned int local_dm_arr_len = n_rows_per_rank * N;
+  double local_sum = 0;
+  double local_sums[nprocs];
+  double global_sum = 0;
   // printf("R: %d, N: %d, n_rows_per_rank: %d\n", my_rank, N, n_rows_per_rank);
 
   // Populate array of start indices for Scatter
@@ -109,10 +116,6 @@ int main(int argc, char **argv)
   // printf("Rank: %d, Start index: %d\n", my_rank, loc_start_idx);
 
   // allocate memory on all ranks for an n_rows_per_rank x N cols subset of the dm
-  if (my_rank == nprocs - 1)
-  {
-    n_rows_per_rank = n_rows_last_rank;
-  }
   double *local_dm_block = (double *)calloc(n_rows_per_rank * N, sizeof(double));
 
   // printf("R: %d, n_rows_per_rank: %d\n", my_rank, n_rows_per_rank);
@@ -127,7 +130,7 @@ int main(int argc, char **argv)
   int loc_stop_idx = loc_start_idx + n_rows_per_rank;
   for (int pt_a = loc_start_idx; pt_a < loc_stop_idx; pt_a++)
   {
-    // To drop out lower triangle, change pt_b = 0 to pt_b = pt_a and adjust sums
+    // TODO: To drop out lower triangle, change pt_b = 0 to pt_b = pt_a and adjust sums
     for (int pt_b = 0; pt_b < N; pt_b++)
     {
       dm_idx = (pt_a - loc_start_idx) * N + pt_b;
@@ -138,23 +141,26 @@ int main(int argc, char **argv)
 
   // TODO: Calculate local sums at each rank
 
+  // Display run time of core calculation
   if (my_rank == 0)
   {
     time = MPI_Wtime() - time;
+    printf("Run time for r0: %f\n", time);
   }
-  // TODO: display time
 
   // display dm by sequentially printing each block
   int print_rank = 0;
   for (int i = 0; i < nprocs; i++){
     if (my_rank == print_rank){
-      print_block(n_rows_per_rank, N, local_dm_block);
-      print_rank ++;
+      print_block(local_dm_arr_len, N, local_dm_block);
+      print_rank++;
     }
     MPI_Bcast(&print_rank, 1, MPI_INT, i, MPI_COMM_WORLD);
   }
 
-  // Have rank 0 MPI_Reduce the local sums into a single global sum.
+  // Calculate local sums locally, then...
+  // for (int i = 0; i < ; i ++)
+  // MPI_Reduce the local sums into a single global sum at root.
   // Report this in the writeup.
 
   free(local_dm_block);
@@ -222,8 +228,8 @@ double euclidean_dist(double *pt_data_a, double *pt_data_b, unsigned int dim){
   return dist;
 }
 
-void print_block(unsigned int n_rows_per_rank, unsigned int N, double *local_dm_block){
-  for (int i = 0; i < n_rows_per_rank * N; i++){
+void print_block(unsigned int local_dm_arr_len, unsigned int N, double *local_dm_block){
+  for (int i = 0; i < local_dm_arr_len; i++){
     printf("%lf", local_dm_block[i]);
     if ((i + 1) % N == 0){
       printf("\n");
