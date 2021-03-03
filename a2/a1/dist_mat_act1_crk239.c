@@ -14,6 +14,7 @@
 
 //function prototypes
 int importDataset(char *fname, int N, double **dataset);
+double euclidean_dist(double *pt_data_a, double *pt_data_b, unsigned int dim);
 
 int main(int argc, char **argv)
 {
@@ -89,7 +90,7 @@ int main(int argc, char **argv)
   unsigned int start_indices[nprocs];
   unsigned int dm_idx = 0;
 
-  printf("R: %d, N: %d, n_rows_per_rank: %d\n", my_rank, N, n_rows_per_rank);
+  // printf("R: %d, N: %d, n_rows_per_rank: %d\n", my_rank, N, n_rows_per_rank);
 
   // Populate array of start indices for Scatter
   if (my_rank == 0)
@@ -113,8 +114,8 @@ int main(int argc, char **argv)
   }
   double *local_dm_block = (double *)calloc(n_rows_per_rank * N, sizeof(double));
 
-  printf("R: %d, n_rows_per_rank: %d\n", my_rank, n_rows_per_rank);
-  printf("R: %d, Number of slots in local_dm_block: %d\n", my_rank, n_rows_per_rank * N);
+  // printf("R: %d, n_rows_per_rank: %d\n", my_rank, n_rows_per_rank);
+  // printf("R: %d, Number of slots in local_dm_block: %d\n", my_rank, n_rows_per_rank * N);
 
   double time;
   if (my_rank == 0)
@@ -125,25 +126,33 @@ int main(int argc, char **argv)
   int loc_stop_idx = loc_start_idx + n_rows_per_rank;
   for (int pt_a = loc_start_idx; pt_a < loc_stop_idx; pt_a++)
   {
-    // To drop out lower triangle, try moving pt_b = 0 to pt_b = pt_a
+    // To drop out lower triangle, change pt_b = 0 to pt_b = pt_a and adjust sums
     for (int pt_b = 0; pt_b < N; pt_b++)
     {
-      // TODO: Calculate distance
-      double dist = 5.0;
       dm_idx = (pt_a - loc_start_idx) * N + pt_b;
-      local_dm_block[dm_idx] = dist;
+      local_dm_block[dm_idx] = euclidean_dist(dataset[pt_a], dataset[pt_b], DIM);
     }
   }
-  printf("value at 0: %lf, value at 1: %lf\n", local_dm_block[0], local_dm_block[1]);
+  // printf("R: %d, value at 0: %lf, value at 1: %lf\n", my_rank, local_dm_block[0], local_dm_block[1]);
 
-  // Calculate local sums at each rank
+  // TODO: Calculate local sums at each rank
+
   if (my_rank == 0)
   {
     time = MPI_Wtime() - time;
   }
   // TODO: display time
-  // output the distance matrix (sequentially)
-  // Have rank 0 MPI_Reduce the local sums into a single global sum.
+
+  // TODO: Use the following to sequentially display the DM
+  // Display dm values for local block
+  for (int i = 0; i < n_rows_per_rank * N; i++){
+    printf("%lf", local_dm_block[i]);
+    if ((i + 1) % N == 0){
+      printf("\n");
+    } else {
+      printf(", ");
+    }
+  } // Have rank 0 MPI_Reduce the local sums into a single global sum.
   // Report this in the writeup.
 
   free(local_dm_block);
@@ -201,4 +210,12 @@ int importDataset(char *fname, int N, double **dataset)
   fclose(fp);
 
   return 0;
+}
+
+double euclidean_dist(double *pt_data_a, double *pt_data_b, unsigned int dim){
+  double dist = 0;
+  for (int i = 0; i < dim; i++){
+    dist = dist + sqrt( (pt_data_a[i] - pt_data_b[i]) * (pt_data_a[i] - pt_data_b[i]) );
+  }
+  return dist;
 }
