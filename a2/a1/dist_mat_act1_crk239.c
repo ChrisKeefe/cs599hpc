@@ -15,6 +15,7 @@
 //function prototypes
 int importDataset(char *fname, int N, double **dataset);
 double euclidean_dist(double *pt_data_a, double *pt_data_b, unsigned int dim);
+void print_block(unsigned int n_rows_per_rank, unsigned int N, double *local_dm_block);
 
 int main(int argc, char **argv)
 {
@@ -143,16 +144,17 @@ int main(int argc, char **argv)
   }
   // TODO: display time
 
-  // TODO: Use the following to sequentially display the DM
-  // Display dm values for local block
-  for (int i = 0; i < n_rows_per_rank * N; i++){
-    printf("%lf", local_dm_block[i]);
-    if ((i + 1) % N == 0){
-      printf("\n");
-    } else {
-      printf(", ");
+  // display dm by sequentially printing each block
+  int print_rank = 0;
+  for (int i = 0; i < nprocs; i++){
+    if (my_rank == print_rank){
+      print_block(n_rows_per_rank, N, local_dm_block);
+      print_rank ++;
     }
-  } // Have rank 0 MPI_Reduce the local sums into a single global sum.
+    MPI_Bcast(&print_rank, 1, MPI_INT, i, MPI_COMM_WORLD);
+  }
+
+  // Have rank 0 MPI_Reduce the local sums into a single global sum.
   // Report this in the writeup.
 
   free(local_dm_block);
@@ -218,4 +220,15 @@ double euclidean_dist(double *pt_data_a, double *pt_data_b, unsigned int dim){
     dist = dist + sqrt( (pt_data_a[i] - pt_data_b[i]) * (pt_data_a[i] - pt_data_b[i]) );
   }
   return dist;
+}
+
+void print_block(unsigned int n_rows_per_rank, unsigned int N, double *local_dm_block){
+  for (int i = 0; i < n_rows_per_rank * N; i++){
+    printf("%lf", local_dm_block[i]);
+    if ((i + 1) % N == 0){
+      printf("\n");
+    } else {
+      printf(", ");
+    }
+  }
 }
