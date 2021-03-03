@@ -97,13 +97,10 @@ int main(int argc, char **argv)
   unsigned int local_dm_arr_len = n_rows_per_rank * N;
   double local_sum = 0;
   double global_sum = 0;
-  // printf("R: %d, N: %d, n_rows_per_rank: %d\n", my_rank, N, n_rows_per_rank);
 
   // Populate array of start indices for Scatter
   if (my_rank == 0)
   {
-    // printf("%d rows, %d ranks, %d rows per rank, except %d rows in the last rank\n",
-    //        N, nprocs, n_rows_per_rank, n_rows_last_rank );
     for (int i = 0; i < nprocs; i++)
     {
       start_indices[i] = i * n_rows_per_rank;
@@ -112,33 +109,27 @@ int main(int argc, char **argv)
 
   // Send start indices to all ranks
   MPI_Scatter(&start_indices, 1, MPI_UNSIGNED, &loc_start_idx, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
-  // printf("Rank: %d, Start index: %d\n", my_rank, loc_start_idx);
 
   // allocate memory on all ranks for an n_rows_per_rank x N cols subset of the dm
   double *local_dm_block = (double *)calloc(n_rows_per_rank * N, sizeof(double));
 
-  // printf("R: %d, n_rows_per_rank: %d\n", my_rank, n_rows_per_rank);
-  // printf("R: %d, Number of slots in local_dm_block: %d\n", my_rank, n_rows_per_rank * N);
-
+  // begin timer on root only
   double time;
   if (my_rank == 0)
   {
     time = MPI_Wtime();
   }
 
+  // Iterate over 2d feature table, calculating (upper triangle of) DM -> 1d array
   int loc_stop_idx = loc_start_idx + n_rows_per_rank;
   for (int pt_a = loc_start_idx; pt_a < loc_stop_idx; pt_a++)
   {
-    // TODO: To drop out lower triangle, change pt_b = 0 to pt_b = pt_a and adjust sums
-    for (int pt_b = 0; pt_b < N; pt_b++)
+    for (int pt_b = pt_a; pt_b < N; pt_b++)
     {
       dm_idx = (pt_a - loc_start_idx) * N + pt_b;
       local_dm_block[dm_idx] = euclidean_dist(dataset[pt_a], dataset[pt_b], DIM);
     }
   }
-  // printf("R: %d, value at 0: %lf, value at 1: %lf\n", my_rank, local_dm_block[0], local_dm_block[1]);
-
-  // TODO: Calculate local sums at each rank
 
   // Display run time of core calculation
   if (my_rank == 0)
@@ -157,15 +148,14 @@ int main(int argc, char **argv)
     MPI_Bcast(&print_rank, 1, MPI_INT, i, MPI_COMM_WORLD);
   }
 
-  // Calculate local sums locally, then...
+  // Calculate local and global sums
   for (int i = 0; i < local_dm_arr_len; i ++){
     local_sum += local_dm_block[i];
   }
-  // MPI_Reduce the local sums into a single global sum at root.
-  // printf("R: %d, local sum: %lf\n", my_rank, local_sum);
   MPI_Reduce(&local_sum, &global_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-  // Report this in the writeup.
   if (my_rank == 0){
+    // Adjust global sum to match square matrix calculation (instead of upper triangle)
+    global_sum = 2 * global_sum;
     printf("Global sum of distances: %lf\n", global_sum);
   }
 
