@@ -96,7 +96,6 @@ int main(int argc, char **argv)
   unsigned int dm_idx = 0;
   unsigned int local_dm_arr_len = n_rows_per_rank * N;
   double local_sum = 0;
-  double local_sums[nprocs];
   double global_sum = 0;
   // printf("R: %d, N: %d, n_rows_per_rank: %d\n", my_rank, N, n_rows_per_rank);
 
@@ -159,9 +158,16 @@ int main(int argc, char **argv)
   }
 
   // Calculate local sums locally, then...
-  // for (int i = 0; i < ; i ++)
+  for (int i = 0; i < local_dm_arr_len; i ++){
+    local_sum += local_dm_block[i];
+  }
   // MPI_Reduce the local sums into a single global sum at root.
+  // printf("R: %d, local sum: %lf\n", my_rank, local_sum);
+  MPI_Reduce(&local_sum, &global_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
   // Report this in the writeup.
+  if (my_rank == 0){
+    printf("Global sum of distances: %lf\n", global_sum);
+  }
 
   free(local_dm_block);
   //free dataset
