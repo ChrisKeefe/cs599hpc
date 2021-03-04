@@ -219,8 +219,9 @@ int importDataset(char *fname, int N, double **dataset)
 double euclidean_dist(double *pt_data_a, double *pt_data_b, unsigned int dim){
   double dist = 0;
   for (int i = 0; i < dim; i++){
-    dist = dist + sqrt( (pt_data_a[i] - pt_data_b[i]) * (pt_data_a[i] - pt_data_b[i]) );
+    dist = dist + (pt_data_a[i] - pt_data_b[i]) * (pt_data_a[i] - pt_data_b[i]);
   }
+  dist = sqrt(dist);
   return dist;
 }
 
