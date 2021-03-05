@@ -1,14 +1,13 @@
 #!/bin/bash
 #SBATCH --account=cs599-spr21
-#SBATCH --job-name=dist_mat1
-#SBATCH --time=02:00				# 2 min
-#SBATCH --mem=2000
+#SBATCH --job-name=dist_mat1        # In practice, this is superseded from the CLI
+#SBATCH --time=05:00				# 5 min
+#SBATCH --mem=8000                  # 80GB dm + (1 GB raw data + odds and ends) * ntasks. Also superseded
 #SBATCH --nodes=1
-#SBATCH --ntasks=10
+#SBATCH --ntasks=10                 # Also superseded from the CLI
 #SBATCH --cpus-per-task=1
-
-# TODO: Must use exclusive flag
-# How many ranks do we want?
+#SBATCH --exclusive
+#SBATCH -C sl                       # there are a bunch of broadwell (bw) and skylake (sl) cores
 
 PREFIX='/scratch/crk239/cs599hpc'
 ASSIGN='2'
