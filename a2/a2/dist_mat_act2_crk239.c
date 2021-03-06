@@ -138,16 +138,6 @@ int main(int argc, char **argv)
     printf("Run time for r0: %f\n", time);
   }
 
-  // display dm by sequentially printing each block
-  int print_rank = 0;
-  for (int i = 0; i < nprocs; i++){
-    if (my_rank == print_rank){
-      print_block(local_dm_arr_len, N, local_dm_block);
-      print_rank++;
-    }
-    MPI_Bcast(&print_rank, 1, MPI_INT, i, MPI_COMM_WORLD);
-  }
-
   // Calculate local and global sums
   for (int i = 0; i < local_dm_arr_len; i ++){
     local_sum += local_dm_block[i];
@@ -157,6 +147,16 @@ int main(int argc, char **argv)
     // Adjust global sum to match square matrix calculation (instead of upper triangle)
     global_sum = 2 * global_sum;
     printf("Global sum of distances: %lf\n", global_sum);
+  }
+
+  // display dm by sequentially printing each block
+  int print_rank = 0;
+  for (int i = 0; i < nprocs; i++){
+    if (my_rank == print_rank){
+      print_block(local_dm_arr_len, N, local_dm_block);
+      print_rank++;
+    }
+    MPI_Bcast(&print_rank, 1, MPI_INT, i, MPI_COMM_WORLD);
   }
 
   free(local_dm_block);
