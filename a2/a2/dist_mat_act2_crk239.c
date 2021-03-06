@@ -140,8 +140,6 @@ int main(int argc, char **argv)
   int tiles_remaining = tiles_per_row * tiles_per_col;
   bool to_next_row = true;
 
-  // printf("Tiles to calculate: %d\n", tiles_remaining);
-
   while (tiles_remaining){
     // Ceiling end indices to prevent overflow, and flag if at end of row
     tile_end_row = (tile_end_row < n_rows_per_rank) ? tile_end_row : n_rows_per_rank;
