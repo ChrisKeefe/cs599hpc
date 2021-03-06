@@ -1,7 +1,7 @@
 #!/bin/bash
 
 for ITER in 1 2 3 ; do
-    for BLOCK_SZ in 5 100 500 1000 2000 3000 4000 5000; do
+    for BLOCKSZ in 5 100 500 1000 2000 3000 4000 5000; do
       NPROCS=20
       MYGIGS=$(expr $NPROCS + 80)
       MYMEM=$(expr $MYGIGS \* 1000)
