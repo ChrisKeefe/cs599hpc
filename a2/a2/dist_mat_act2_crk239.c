@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <stdbool.h>
 
 //Example compilation
 //mpicc distance_matrix_starter.c -lm -o distance_matrix_starter
@@ -137,11 +138,29 @@ int main(int argc, char **argv)
   int tiles_per_row = (N % blocksize == 0) ? (int)(N / blocksize):(int)(N/blocksize) + 1;
   int tiles_per_col = (n_rows_per_rank % blocksize == 0) ? (int)(n_rows_per_rank / blocksize):(int)(n_rows_per_rank/blocksize) + 1;
   int tiles_remaining = tiles_per_row * tiles_per_col;
+  bool to_next_row = true;
 
   // printf("Tiles to calculate: %d\n", tiles_remaining);
 
-  // Iterate over square 2*blocksize sets of points, populating "squares" of DM
-  calculate_tile_dists(rank_start_row, rank_start_col, rank_end_row, rank_end_col, dataset, local_dm_chunk, N, DIM);
+  while (tiles_remaining){
+    // Ceiling end indices to prevent overflow, and flag if at end of row
+    tile_end_row = (tile_end_row < n_rows_per_rank) ? tile_end_row : n_rows_per_rank;
+    if (tile_end_col >= N){
+      tile_end_col = N;
+      tile_start_row += blocksize;
+      to_next_row = true;
+    }
+    calculate_tile_dists(rank_start_row, rank_start_col, rank_end_row, rank_end_col, dataset, local_dm_chunk, N, DIM);
+    // adjust loop flag and indices 
+    tiles_remaining--;
+    tile_start_col += blocksize;
+    tile_end_col += blocksize;
+    if (to_next_row){
+      tile_start_row += blocksize;
+      tile_end_row += blocksize;
+      to_next_row = false;
+    }
+  }
 
   // Display run time of core calculation
   if (my_rank == 0)
