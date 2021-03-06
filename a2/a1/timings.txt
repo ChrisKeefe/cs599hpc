@@ -1,0 +1,24 @@
+dm1
+[cn96:2620165:0:2620165] Caught signal 11 (Segmentation fault: address not mapped to object at address 0x15551a911000)
+[cn96:2624504:0:2624504] Caught signal 11 (Segmentation fault: address not mapped to object at address 0x149933fc4000)
+[cn96:2620411:0:2620411] Caught signal 11 (Segmentation fault: address not mapped to object at address 0x147befed7000)
+dm4
+Run time for r0: 205.064345
+Run time for r0: 205.861973
+Run time for r0: 206.674203
+dm8
+Run time for r0: 111.097589
+Run time for r0: 111.041626
+Run time for r0: 110.587027
+dm12
+Run time for r0: 76.280893
+Run time for r0: 75.956400
+Run time for r0: 75.962648
+dm16
+Run time for r0: 57.655831
+Run time for r0: 57.457717
+Run time for r0: 57.518816
+dm20
+Run time for r0: 46.516183
+Run time for r0: 46.673639
+Run time for r0: 46.923587
