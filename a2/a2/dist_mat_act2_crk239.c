@@ -122,14 +122,25 @@ int main(int argc, char **argv)
     time = MPI_Wtime();
   }
 
-  // Iterate over square 2*blocksize sets of points, populating "squares" of DM
+  // set start/end indices for each rank's chunk of the data
   const int rank_start_row = loc_start_idx;
   const int rank_end_row = loc_start_idx + n_rows_per_rank;
   const int rank_start_col = 0;
   const int rank_end_col = N;
-  int tile_start_row = loc_start_idx;
-  int tile_start_col = 0;
+  // Set start/end indices for the first tile we'll calculate
+  int tile_start_row = rank_start_row;
+  int tile_start_col = rank_start_col;
+  int tile_end_row = tile_start_row + blocksize - 1;
+  int tile_end_col = blocksize - 1;
 
+  // How many tiles will we calculate?
+  int tiles_per_row = (N % blocksize == 0) ? (int)(N / blocksize):(int)(N/blocksize) + 1;
+  int tiles_per_col = (n_rows_per_rank % blocksize == 0) ? (int)(n_rows_per_rank / blocksize):(int)(n_rows_per_rank/blocksize) + 1;
+  int tiles_remaining = tiles_per_row * tiles_per_col;
+
+  // printf("Tiles to calculate: %d\n", tiles_remaining);
+
+  // Iterate over square 2*blocksize sets of points, populating "squares" of DM
   calculate_tile_dists(rank_start_row, rank_start_col, rank_end_row, rank_end_col, dataset, local_dm_chunk, N, DIM);
 
   // Display run time of core calculation
