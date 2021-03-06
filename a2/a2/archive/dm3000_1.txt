@@ -1,0 +1,220 @@
+======== ! IMPORTANT ! IMPORTANT ! IMPORTANT ! ===========
+| You are nearly over-quota in one of your storage areas.
+| Oot of an abundance of caution, your job has been
+| paused ('held') so that you may rectify the issue.
+|
+| Please do the following to re-enable your job:
+|   1. Check your quotas using the 'getquotas' command
+|   2. Reduce any quota-usage that is at/above 95%
+|   3. Then use 'scontrol release <jobid>' to continue
+|
+==========================================================
+======== ! IMPORTANT ! IMPORTANT ! IMPORTANT ! ===========
+| You are nearly over-quota in one of your storage areas.
+| Oot of an abundance of caution, your job has been
+| paused ('held') so that you may rectify the issue.
+|
+| Please do the following to re-enable your job:
+|   1. Check your quotas using the 'getquotas' command
+|   2. Reduce any quota-usage that is at/above 95%
+|   3. Then use 'scontrol release <jobid>' to continue
+|
+==========================================================
+======== ! IMPORTANT ! IMPORTANT ! IMPORTANT ! ===========
+| You are nearly over-quota in one of your storage areas.
+| Oot of an abundance of caution, your job has been
+| paused ('held') so that you may rectify the issue.
+|
+| Please do the following to re-enable your job:
+|   1. Check your quotas using the 'getquotas' command
+|   2. Reduce any quota-usage that is at/above 95%
+|   3. Then use 'scontrol release <jobid>' to continue
+|
+==========================================================
+======== ! IMPORTANT ! IMPORTANT ! IMPORTANT ! ===========
+| You are nearly over-quota in one of your storage areas.
+| Oot of an abundance of caution, your job has been
+| paused ('held') so that you may rectify the issue.
+|
+| Please do the following to re-enable your job:
+|   1. Check your quotas using the 'getquotas' command
+|   2. Reduce any quota-usage that is at/above 95%
+|   3. Then use 'scontrol release <jobid>' to continue
+|
+==========================================================
+======== ! IMPORTANT ! IMPORTANT ! IMPORTANT ! ===========
+| You are nearly over-quota in one of your storage areas.
+| Oot of an abundance of caution, your job has been
+| paused ('held') so that you may rectify the issue.
+|
+| Please do the following to re-enable your job:
+|   1. Check your quotas using the 'getquotas' command
+|   2. Reduce any quota-usage that is at/above 95%
+|   3. Then use 'scontrol release <jobid>' to continue
+|
+==========================================================
+======== ! IMPORTANT ! IMPORTANT ! IMPORTANT ! ===========
+| You are nearly over-quota in one of your storage areas.
+| Oot of an abundance of caution, your job has been
+| paused ('held') so that you may rectify the issue.
+|
+| Please do the following to re-enable your job:
+|   1. Check your quotas using the 'getquotas' command
+|   2. Reduce any quota-usage that is at/above 95%
+|   3. Then use 'scontrol release <jobid>' to continue
+|
+==========================================================
+======== ! IMPORTANT ! IMPORTANT ! IMPORTANT ! ===========
+| You are nearly over-quota in one of your storage areas.
+| Oot of an abundance of caution, your job has been
+| paused ('held') so that you may rectify the issue.
+|
+| Please do the following to re-enable your job:
+|   1. Check your quotas using the 'getquotas' command
+|   2. Reduce any quota-usage that is at/above 95%
+|   3. Then use 'scontrol release <jobid>' to continue
+|
+==========================================================
+======== ! IMPORTANT ! IMPORTANT ! IMPORTANT ! ===========
+| You are nearly over-quota in one of your storage areas.
+| Oot of an abundance of caution, your job has been
+| paused ('held') so that you may rectify the issue.
+|
+| Please do the following to re-enable your job:
+|   1. Check your quotas using the 'getquotas' command
+|   2. Reduce any quota-usage that is at/above 95%
+|   3. Then use 'scontrol release <jobid>' to continue
+|
+==========================================================
+======== ! IMPORTANT ! IMPORTANT ! IMPORTANT ! ===========
+| You are nearly over-quota in one of your storage areas.
+| Oot of an abundance of caution, your job has been
+| paused ('held') so that you may rectify the issue.
+|
+| Please do the following to re-enable your job:
+|   1. Check your quotas using the 'getquotas' command
+|   2. Reduce any quota-usage that is at/above 95%
+|   3. Then use 'scontrol release <jobid>' to continue
+|
+==========================================================
+======== ! IMPORTANT ! IMPORTANT ! IMPORTANT ! ===========
+| You are nearly over-quota in one of your storage areas.
+| Oot of an abundance of caution, your job has been
+| paused ('held') so that you may rectify the issue.
+|
+| Please do the following to re-enable your job:
+|   1. Check your quotas using the 'getquotas' command
+|   2. Reduce any quota-usage that is at/above 95%
+|   3. Then use 'scontrol release <jobid>' to continue
+|
+==========================================================
+======== ! IMPORTANT ! IMPORTANT ! IMPORTANT ! ===========
+| You are nearly over-quota in one of your storage areas.
+| Oot of an abundance of caution, your job has been
+| paused ('held') so that you may rectify the issue.
+|
+| Please do the following to re-enable your job:
+|   1. Check your quotas using the 'getquotas' command
+|   2. Reduce any quota-usage that is at/above 95%
+|   3. Then use 'scontrol release <jobid>' to continue
+|
+==========================================================
+======== ! IMPORTANT ! IMPORTANT ! IMPORTANT ! ===========
+| You are nearly over-quota in one of your storage areas.
+| Oot of an abundance of caution, your job has been
+| paused ('held') so that you may rectify the issue.
+|
+| Please do the following to re-enable your job:
+|   1. Check your quotas using the 'getquotas' command
+|   2. Reduce any quota-usage that is at/above 95%
+|   3. Then use 'scontrol release <jobid>' to continue
+|
+==========================================================
+======== ! IMPORTANT ! IMPORTANT ! IMPORTANT ! ===========
+| You are nearly over-quota in one of your storage areas.
+| Oot of an abundance of caution, your job has been
+| paused ('held') so that you may rectify the issue.
+|
+| Please do the following to re-enable your job:
+|   1. Check your quotas using the 'getquotas' command
+|   2. Reduce any quota-usage that is at/above 95%
+|   3. Then use 'scontrol release <jobid>' to continue
+|
+==========================================================
+======== ! IMPORTANT ! IMPORTANT ! IMPORTANT ! ===========
+| You are nearly over-quota in one of your storage areas.
+| Oot of an abundance of caution, your job has been
+| paused ('held') so that you may rectify the issue.
+|
+| Please do the following to re-enable your job:
+|   1. Check your quotas using the 'getquotas' command
+|   2. Reduce any quota-usage that is at/above 95%
+|   3. Then use 'scontrol release <jobid>' to continue
+|
+==========================================================
+======== ! IMPORTANT ! IMPORTANT ! IMPORTANT ! ===========
+| You are nearly over-quota in one of your storage areas.
+| Oot of an abundance of caution, your job has been
+| paused ('held') so that you may rectify the issue.
+|
+| Please do the following to re-enable your job:
+|   1. Check your quotas using the 'getquotas' command
+|   2. Reduce any quota-usage that is at/above 95%
+|   3. Then use 'scontrol release <jobid>' to continue
+|
+==========================================================
+======== ! IMPORTANT ! IMPORTANT ! IMPORTANT ! ===========
+| You are nearly over-quota in one of your storage areas.
+| Oot of an abundance of caution, your job has been
+| paused ('held') so that you may rectify the issue.
+|
+| Please do the following to re-enable your job:
+|   1. Check your quotas using the 'getquotas' command
+|   2. Reduce any quota-usage that is at/above 95%
+|   3. Then use 'scontrol release <jobid>' to continue
+|
+==========================================================
+======== ! IMPORTANT ! IMPORTANT ! IMPORTANT ! ===========
+| You are nearly over-quota in one of your storage areas.
+| Oot of an abundance of caution, your job has been
+| paused ('held') so that you may rectify the issue.
+|
+| Please do the following to re-enable your job:
+|   1. Check your quotas using the 'getquotas' command
+|   2. Reduce any quota-usage that is at/above 95%
+|   3. Then use 'scontrol release <jobid>' to continue
+|
+==========================================================
+======== ! IMPORTANT ! IMPORTANT ! IMPORTANT ! ===========
+| You are nearly over-quota in one of your storage areas.
+| Oot of an abundance of caution, your job has been
+| paused ('held') so that you may rectify the issue.
+|
+| Please do the following to re-enable your job:
+|   1. Check your quotas using the 'getquotas' command
+|   2. Reduce any quota-usage that is at/above 95%
+|   3. Then use 'scontrol release <jobid>' to continue
+|
+==========================================================
+======== ! IMPORTANT ! IMPORTANT ! IMPORTANT ! ===========
+| You are nearly over-quota in one of your storage areas.
+| Oot of an abundance of caution, your job has been
+| paused ('held') so that you may rectify the issue.
+|
+| Please do the following to re-enable your job:
+|   1. Check your quotas using the 'getquotas' command
+|   2. Reduce any quota-usage that is at/above 95%
+|   3. Then use 'scontrol release <jobid>' to continue
+|
+==========================================================
+======== ! IMPORTANT ! IMPORTANT ! IMPORTANT ! ===========
+| You are nearly over-quota in one of your storage areas.
+| Oot of an abundance of caution, your job has been
+| paused ('held') so that you may rectify the issue.
+|
+| Please do the following to re-enable your job:
+|   1. Check your quotas using the 'getquotas' command
+|   2. Reduce any quota-usage that is at/above 95%
+|   3. Then use 'scontrol release <jobid>' to continue
+|
+==========================================================
