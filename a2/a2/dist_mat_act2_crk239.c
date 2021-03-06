@@ -179,14 +179,14 @@ int main(int argc, char **argv)
   }
 
   // display dm by sequentially printing each chunk
-  int print_rank = 0;
-  for (int i = 0; i < nprocs; i++){
-    if (my_rank == print_rank){
-      print_chunk(local_dm_arr_len, N, local_dm_chunk);
-      print_rank++;
-    }
-    MPI_Bcast(&print_rank, 1, MPI_INT, i, MPI_COMM_WORLD);
-  }
+//  int print_rank = 0;
+//  for (int i = 0; i < nprocs; i++){
+//    if (my_rank == print_rank){
+//      print_chunk(local_dm_arr_len, N, local_dm_chunk);
+//      print_rank++;
+//    }
+//    MPI_Bcast(&print_rank, 1, MPI_INT, i, MPI_COMM_WORLD);
+//  }
 
   free(local_dm_chunk);
   //free dataset
