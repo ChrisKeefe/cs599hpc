@@ -15,9 +15,9 @@
 //function prototypes
 int importDataset(char *fname, int N, double **dataset);
 double euclidean_dist(double *pt_data_a, double *pt_data_b, unsigned int dim);
-void print_block(unsigned int local_dm_arr_len, unsigned int N, double *local_dm_block);
+void print_chunk(unsigned int local_dm_arr_len, unsigned int N, double *local_dm_chunk);
 void calculate_tile_dists(int start_row, int start_col, int end_row, int end_col,
-                          double **dataset, double *local_dm_block, int N, int DIM);
+                          double **dataset, double *local_dm_chunk, int N, int DIM);
 
 int main(int argc, char **argv)
 {
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
   MPI_Scatter(&start_indices, 1, MPI_UNSIGNED, &loc_start_idx, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 
   // allocate memory on all ranks for an n_rows_per_rank x N cols subset of the dm
-  double *local_dm_block = (double *)calloc(n_rows_per_rank * N, sizeof(double));
+  double *local_dm_chunk = (double *)calloc(n_rows_per_rank * N, sizeof(double));
 
   // begin timer on root only
   double time;
@@ -123,11 +123,14 @@ int main(int argc, char **argv)
   }
 
   // Iterate over square 2*blocksize sets of points, populating "squares" of DM
-  int loc_stop_idx = loc_start_idx + n_rows_per_rank;
-  int block_start_row = loc_start_idx;
-  int block_start_col = 0;
+  const int rank_start_row = loc_start_idx;
+  const int rank_end_row = loc_start_idx + n_rows_per_rank;
+  const int rank_start_col = 0;
+  const int rank_end_col = N;
+  int tile_start_row = loc_start_idx;
+  int tile_start_col = 0;
 
-  calculate_tile_dists(loc_start_idx, block_start_col, loc_stop_idx, N, dataset, local_dm_block, N, DIM);
+  calculate_tile_dists(rank_start_row, rank_start_col, rank_end_row, rank_end_col, dataset, local_dm_chunk, N, DIM);
 
   // Display run time of core calculation
   if (my_rank == 0)
@@ -138,7 +141,7 @@ int main(int argc, char **argv)
 
   // Calculate local and global sums
   for (int i = 0; i < local_dm_arr_len; i ++){
-    local_sum += local_dm_block[i];
+    local_sum += local_dm_chunk[i];
   }
   MPI_Reduce(&local_sum, &global_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
   if (my_rank == 0){
@@ -147,17 +150,17 @@ int main(int argc, char **argv)
     printf("Global sum of distances: %lf\n", global_sum);
   }
 
-  // display dm by sequentially printing each block
+  // display dm by sequentially printing each chunk
   int print_rank = 0;
   for (int i = 0; i < nprocs; i++){
     if (my_rank == print_rank){
-      print_block(local_dm_arr_len, N, local_dm_block);
+      print_chunk(local_dm_arr_len, N, local_dm_chunk);
       print_rank++;
     }
     MPI_Bcast(&print_rank, 1, MPI_INT, i, MPI_COMM_WORLD);
   }
 
-  free(local_dm_block);
+  free(local_dm_chunk);
   //free dataset
   for (int i = 0; i < N; i++)
   {
@@ -224,21 +227,21 @@ double euclidean_dist(double *pt_data_a, double *pt_data_b, unsigned int dim){
 }
 
 void calculate_tile_dists(int start_row, int start_col, int end_row, int end_col,
-                          double **dataset, double *local_dm_block, int N, int DIM){
+                          double **dataset, double *local_dm_chunk, int N, int DIM){
   unsigned int dm_idx = 0;
   for (int pt_a = start_row; pt_a < end_row; pt_a++)
   {
     for (int pt_b = start_col; pt_b < end_col; pt_b++)
     {
       dm_idx = (pt_a - start_row) * N + pt_b;
-      local_dm_block[dm_idx] = euclidean_dist(dataset[pt_a], dataset[pt_b], DIM);
+      local_dm_chunk[dm_idx] = euclidean_dist(dataset[pt_a], dataset[pt_b], DIM);
     }
   }
 }
 
-void print_block(unsigned int local_dm_arr_len, unsigned int N, double *local_dm_block){
+void print_chunk(unsigned int local_dm_arr_len, unsigned int N, double *local_dm_chunk){
   for (int i = 0; i < local_dm_arr_len; i++){
-    printf("%lf", local_dm_block[i]);
+    printf("%lf", local_dm_chunk[i]);
     if ((i + 1) % N == 0){
       printf("\n");
     } else {
