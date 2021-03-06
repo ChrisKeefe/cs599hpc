@@ -178,6 +178,7 @@ int main(int argc, char **argv)
     printf("Global sum of distances: %lf\n", global_sum);
   }
 
+// Temporarily commented out to reduce wall time and memory impact of jobs
   // display dm by sequentially printing each chunk
 //  int print_rank = 0;
 //  for (int i = 0; i < nprocs; i++){
