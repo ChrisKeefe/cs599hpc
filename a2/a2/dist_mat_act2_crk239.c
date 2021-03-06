@@ -16,6 +16,8 @@
 int importDataset(char *fname, int N, double **dataset);
 double euclidean_dist(double *pt_data_a, double *pt_data_b, unsigned int dim);
 void print_block(unsigned int local_dm_arr_len, unsigned int N, double *local_dm_block);
+void calculate_tile_dists(int start_row, int start_col, int end_row, int end_col,
+                          double **dataset, double *local_dm_block, int N, int DIM);
 
 int main(int argc, char **argv)
 {
@@ -120,16 +122,12 @@ int main(int argc, char **argv)
     time = MPI_Wtime();
   }
 
-  // Iterate over 2d feature table, calculating (upper triangle of) DM -> 1d array
+  // Iterate over square 2*blocksize sets of points, populating "squares" of DM
   int loc_stop_idx = loc_start_idx + n_rows_per_rank;
-  for (int pt_a = loc_start_idx; pt_a < loc_stop_idx; pt_a++)
-  {
-    for (int pt_b = pt_a; pt_b < N; pt_b++)
-    {
-      dm_idx = (pt_a - loc_start_idx) * N + pt_b;
-      local_dm_block[dm_idx] = euclidean_dist(dataset[pt_a], dataset[pt_b], DIM);
-    }
-  }
+  int block_start_row = loc_start_idx;
+  int block_start_col = 0;
+
+  calculate_tile_dists(loc_start_idx, block_start_col, loc_stop_idx, N, dataset, local_dm_block, N, DIM);
 
   // Display run time of core calculation
   if (my_rank == 0)
@@ -223,6 +221,19 @@ double euclidean_dist(double *pt_data_a, double *pt_data_b, unsigned int dim){
   }
   dist = sqrt(dist);
   return dist;
+}
+
+void calculate_tile_dists(int start_row, int start_col, int end_row, int end_col,
+                          double **dataset, double *local_dm_block, int N, int DIM){
+  unsigned int dm_idx = 0;
+  for (int pt_a = start_row; pt_a < end_row; pt_a++)
+  {
+    for (int pt_b = start_col; pt_b < end_col; pt_b++)
+    {
+      dm_idx = (pt_a - start_row) * N + pt_b;
+      local_dm_block[dm_idx] = euclidean_dist(dataset[pt_a], dataset[pt_b], DIM);
+    }
+  }
 }
 
 void print_block(unsigned int local_dm_arr_len, unsigned int N, double *local_dm_block){
