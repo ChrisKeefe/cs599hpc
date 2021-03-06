@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=cs599-spr21
 #SBATCH --job-name=dist_mat1        # In practice, this is superseded from the CLI
-#SBATCH --time=05:00				# 5 min
+#SBATCH --time=15:00				# 5 min
 #SBATCH --mem=8000                  # 80GB dm + (1 GB raw data + odds and ends) * ntasks. Also superseded
 #SBATCH --nodes=1
 #SBATCH --ntasks=10                 # Also superseded from the CLI
