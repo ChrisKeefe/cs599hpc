@@ -94,60 +94,23 @@ int main(int argc, char **argv) {
 
     // Actually send/receive the data
     if (destBucketIdx != my_rank){
-
-// Send buffers look great!
-if(my_rank == 0){
-  printf("rank: %d, send buffer sz: %d\n", my_rank, nValsToSend);
-  for (int i = 0; i < nValsToSend; i++ ){
-    printf("%d ", sendDataSetBuffer[i]);
-  }
- printf("\n\n");
-}
-
-      int max_sent = localN - myDataSize;
+      int max_sendable = localN;
       int actual_sent;
-      // TODO: See if we can remove this source_rank calc in favor of MPI_ANY_SOURCE
       int source_rank = (my_rank + nprocs - i) % nprocs;
       MPI_Isend(sendDataSetBuffer, nValsToSend, MPI_INT, destBucketIdx, 0, MPI_COMM_WORLD, &req);
-      MPI_Recv(recvDatasetBuffer, max_sent, MPI_INT, source_rank, 0, MPI_COMM_WORLD, &status);
+      MPI_Recv(recvDatasetBuffer, max_sendable, MPI_INT, source_rank, 0, MPI_COMM_WORLD, &status);
       MPI_Get_count(&status, MPI_INT, &actual_sent);
       MPI_Wait(&req, &status);
-      memcpy((void*)(myDataSet + sizeof(int) * myDataSize), (void *)recvDatasetBuffer, sizeof(int) * actual_sent);
+      memcpy((void*)(myDataSet + myDataSize), (void *)recvDatasetBuffer, sizeof(int) * actual_sent);
       myDataSize += actual_sent;
-if(my_rank == 1){
-  printf("rank: %d, received sz: %d\n", my_rank, actual_sent);
-  for (int i = 0; i < actual_sent; i++ ){
-    printf("%d ", recvDatasetBuffer[i]);
-  }
- printf("\n\n");
-}
     }
   }
 
-// Check all values at rank0
-// if (my_rank == 0){
-//   for (int i = 0; i < myDataSize; i++){
-//     printf("%d ", myDataSet[i]);
-//   }
-//   printf("\n");
-// }
-
-  // receive values from MPI_ANY_SOURCE?, add to myDataSet, and increment myDataSize
-  // end loop
-
-  // at this point, we should have looped nprocs times, sent nprocs - 1 times,
-  // and received nprocs - 1 times. 
-  // r0 shouldn't receive when n-1 is sending to self. r1 shouldn't receive when
-  // r0 is sending to self
-
-  // first round, r0 sends to r0, r1 to r1, r n-1 to n-1: (my_rank + 0) % nprocs
-  // second round, r0 sends to r1, r1 sends to r2, rn-1 to 9: (my_rank + 1) % nprocs
-  // if three ranks: 0 + 1 % 3 = 1, 1 + 1 % 3 = 2, 2 + 1 % 3 = 0
 
   // Print time to distribute
 
   // Step 2: Sort data at each rank with qsort
-  
+  qsort((void*)myDataSet, myDataSize, sizeof(int), &compfn);
   // End timer and display total time
 
   // Check that the global sum of all elements across all ranks before sorting
@@ -159,6 +122,12 @@ if(my_rank == 1){
   // printf("Global sum is: %d", global_sum);
 
   // test to make sure data is sorted at each rank
+
+printf("rank: %d, sz %d\n", my_rank, myDataSize);
+  for (int i = 0; i < myDataSize; i++){
+    printf("%d ", myDataSet[i]);
+  }
+  printf("\n");
 
   //free
   free(data); 
