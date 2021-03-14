@@ -5,10 +5,6 @@
 #include <math.h>
 #include <string.h>
 
-// valgrind:
-// mpicc sorting_act1_crk239.c -lm -g -o sort
-// valgrind --tool=memcheck --leak-check=yes --track-origins=yes mpirun -np 4 -hostfile ../myhostfile.txt ./sort
-
 // mpicc sorting_act1_crk239.c -lm -O3 -o sort
 // mpirun -np 5 -hostfile ../myhostfile.txt ./sort
 
@@ -26,7 +22,7 @@ int compfn (const void * a, const void * b)
 
 //Total input size is N, divided by nprocs
 //Doesn't matter if N doesn't evenly divide nprocs
-#define N 10000000000
+#define N 1000000000
 
 int main(int argc, char **argv) {
 
