@@ -19,13 +19,13 @@ int compfn (const void * a, const void * b)
 #define SEED 72
 // TODO: revert
 // #define MAXVAL 1000000
-#define MAXVAL 100000
+#define MAXVAL 100
 
 //Total input size is N, divided by nprocs
 //Doesn't matter if N doesn't evenly divide nprocs
 // #define N 10000000000
 // TODO: return to the original value
-#define N 10000
+#define N 11
 
 int main(int argc, char **argv) {
 
@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
 
   int * sendDataSetBuffer=(int*)malloc(sizeof(int)*localN); //most that can be sent is localN elements
   int * recvDatasetBuffer=(int*)malloc(sizeof(int)*localN); //most that can be received is localN elements
-  int * myDataSet=(int*)malloc(sizeof(int)*N); //upper bound size is N elements for the rank
+  int * myDataSet=(int*)calloc(N, sizeof(int)); //upper bound size is N elements for the rank
 
 
   //Write code here
@@ -63,7 +63,10 @@ int main(int argc, char **argv) {
   double global_dist_time;
   double global_sort_time;
   double global_total_time;
+  long int local_sum = 0;
+  long int local_sum_unsorted = 0;
   long int global_sum = 0;
+  long int global_sum_unsorted = 0;
 
   // Set bucket value indices
   int bucketSize = MAXVAL / nprocs;
@@ -111,7 +114,6 @@ int main(int argc, char **argv) {
 
   // Print time to distribute
   double distrib_time = MPI_Wtime() - start_time;
-  // printf("R: %d Distrib time %lf\n", my_rank, distrib_time);
 
   // Step 2: Sort data at each rank with qsort
   qsort((void*)myDataSet, myDataSize, sizeof(int), &compfn);
@@ -119,8 +121,6 @@ int main(int argc, char **argv) {
   // End timer and display total time
   double sort_time = MPI_Wtime() - distrib_time;
   double total_time = sort_time + distrib_time;
-  // printf("R: %d Sort time %lf\n", my_rank, sort_time);
-  // printf("R: %d Total time %lf\n", my_rank, total_time);
 
   MPI_Reduce(&distrib_time, &global_dist_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
   MPI_Reduce(&sort_time, &global_sort_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
@@ -128,9 +128,91 @@ int main(int argc, char **argv) {
   if (my_rank == 0){
     printf("global dist time: %f, global sort: %f, global total: %f\n", global_dist_time, global_sort_time, global_total_time);
   }
+
   // Check that the global sum of all elements across all ranks before sorting
   // is the same as the global sum of all elements after sorting, using a reduction
+  for (int i = 0; i < localN; i++){
+    local_sum_unsorted += data[i];
+  }
 
+  for (int i = 0; i < myDataSize; i++){
+    local_sum += myDataSet[i];
+  }
+
+  MPI_Reduce(&local_sum_unsorted, &global_sum_unsorted, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+  MPI_Reduce(&local_sum, &global_sum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+
+  if(my_rank==0){
+    printf("Unsorted: %ld\n", global_sum_unsorted);
+  }
+  
+  if(my_rank==0){
+    if (global_sum == global_sum_unsorted){
+      printf("Global sum %d == unsorted global sum %d\n", global_sum, global_sum_unsorted);
+    } else {
+      printf("Global sum %d != unsorted global sum %d\n", global_sum, global_sum_unsorted);
+    }
+  }
+
+  if(my_rank==0){
+    printf("Printing all values in data\n");
+    for (int i = 0; i < localN; i++){
+      printf("%d  ", data[i]);
+    }
+    printf("\n"); 
+    int sum = 0;
+    for (int i = 0; i < localN; i++){
+      sum += data[i];
+      printf("%d ", sum);
+    }
+    printf("\n");
+  }
+
+  if(my_rank==1){
+    sleep(1);
+    for (int i = 0; i < localN; i++){
+      printf("%d  ", data[i]);
+    }
+    printf("\n"); 
+    int sum = 0;
+    for (int i = 0; i < localN; i++){
+      sum += data[i];
+      printf("%d ", sum);
+    }
+    printf("\n");
+  }
+  
+
+
+  if(my_rank==0){
+    sleep(1);
+    printf("\nPrinting all values in sorted\n");
+    for (int i = 0; i < myDataSize; i++){
+      printf("%d  ", myDataSet[i]);
+    }
+    printf("\n"); 
+    int sum = 0;
+    for (int i = 0; i < myDataSize; i++){
+      sum += myDataSet[i];
+      printf("%d ", sum);
+    }
+    printf("\n");
+  }
+
+  if(my_rank==1){
+    sleep(1);
+    for (int i = 0; i < myDataSize; i++){
+      printf("%d  ", myDataSet[i]);
+    }
+    printf("\n"); 
+    int sum = 0;
+    for (int i = 0; i < myDataSize; i++){
+      sum += myDataSet[i];
+      printf("%d ", sum);
+    }
+    printf("\n");
+  }
+  
   // TODO: Remove
   // printf("When p=20, global sum should be 499937769104586\n");
 
