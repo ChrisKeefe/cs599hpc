@@ -9,6 +9,7 @@
 // mpirun -np 5 -hostfile ../myhostfile.txt ./sort
 
 void generateData(int * data, int SIZE);
+int notSorted(int *data, int size);
 
 int compfn (const void * a, const void * b)
 {
@@ -18,14 +19,11 @@ int compfn (const void * a, const void * b)
 //Do not change the seed
 #define SEED 72
 // TODO: revert
-// #define MAXVAL 1000000
-#define MAXVAL 100
+#define MAXVAL 1000000
 
 //Total input size is N, divided by nprocs
 //Doesn't matter if N doesn't evenly divide nprocs
-// #define N 10000000000
-// TODO: return to the original value
-#define N 11
+#define N 10000000000
 
 int main(int argc, char **argv) {
 
@@ -111,9 +109,9 @@ int main(int argc, char **argv) {
     }
   }
 
-
   // Print time to distribute
   double distrib_time = MPI_Wtime() - start_time;
+
 
   // Step 2: Sort data at each rank with qsort
   qsort((void*)myDataSet, myDataSize, sizeof(int), &compfn);
@@ -121,31 +119,36 @@ int main(int argc, char **argv) {
   // End timer and display total time
   double sort_time = MPI_Wtime() - distrib_time;
   double total_time = sort_time + distrib_time;
-
   MPI_Reduce(&distrib_time, &global_dist_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
   MPI_Reduce(&sort_time, &global_sort_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
   MPI_Reduce(&total_time, &global_total_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
   if (my_rank == 0){
-    printf("global dist time: %f, global sort: %f, global total: %f\n", global_dist_time, global_sort_time, global_total_time);
+    printf("global distrib time: %f, global sort time: %f, global total time: %f\n", global_dist_time, global_sort_time, global_total_time);
   }
 
-  // Check that the global sum of all elements across all ranks before sorting
+
+  // Test to make sure data is sorted at each rank
+  int notSortd = notSorted(myDataSet, myDataSize);
+  if (notSortd){
+    printf("R%d is not sorted.\n", my_rank);
+  }
+  int nRanksUnsorted = 0;
+  MPI_Reduce(&notSortd, &nRanksUnsorted, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+  if(my_rank==0){
+    printf("Number of ranks not sorted properly: %d\n", nRanksUnsorted);
+  }
+
+
+  // Test that the global sum of all elements across all ranks before sorting
   // is the same as the global sum of all elements after sorting, using a reduction
   for (int i = 0; i < localN; i++){
     local_sum_unsorted += data[i];
   }
-
   for (int i = 0; i < myDataSize; i++){
     local_sum += myDataSet[i];
   }
-
   MPI_Reduce(&local_sum_unsorted, &global_sum_unsorted, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
   MPI_Reduce(&local_sum, &global_sum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-
-  if(my_rank==0){
-    printf("Unsorted: %ld\n", global_sum_unsorted);
-  }
-  
   if(my_rank==0){
     if (global_sum == global_sum_unsorted){
       printf("Global sum %d == unsorted global sum %d\n", global_sum, global_sum_unsorted);
@@ -154,89 +157,20 @@ int main(int argc, char **argv) {
     }
   }
 
-  if(my_rank==0){
-    printf("Printing all values in data\n");
-    for (int i = 0; i < localN; i++){
-      printf("%d  ", data[i]);
-    }
-    printf("\n"); 
-    int sum = 0;
-    for (int i = 0; i < localN; i++){
-      sum += data[i];
-      printf("%d ", sum);
-    }
-    printf("\n");
-  }
-
-  if(my_rank==1){
-    sleep(1);
-    for (int i = 0; i < localN; i++){
-      printf("%d  ", data[i]);
-    }
-    printf("\n"); 
-    int sum = 0;
-    for (int i = 0; i < localN; i++){
-      sum += data[i];
-      printf("%d ", sum);
-    }
-    printf("\n");
-  }
-  
-
-
-  if(my_rank==0){
-    sleep(1);
-    printf("\nPrinting all values in sorted\n");
-    for (int i = 0; i < myDataSize; i++){
-      printf("%d  ", myDataSet[i]);
-    }
-    printf("\n"); 
-    int sum = 0;
-    for (int i = 0; i < myDataSize; i++){
-      sum += myDataSet[i];
-      printf("%d ", sum);
-    }
-    printf("\n");
-  }
-
-  if(my_rank==1){
-    sleep(1);
-    for (int i = 0; i < myDataSize; i++){
-      printf("%d  ", myDataSet[i]);
-    }
-    printf("\n"); 
-    int sum = 0;
-    for (int i = 0; i < myDataSize; i++){
-      sum += myDataSet[i];
-      printf("%d ", sum);
-    }
-    printf("\n");
-  }
-  
-  // TODO: Remove
-  // printf("When p=20, global sum should be 499937769104586\n");
-
-  // printf("Global sum is: %d", global_sum);
-
-  // test to make sure data is sorted at each rank
-  
-// TODO: 
-// printf("rank: %d, sz %d\n", my_rank, myDataSize);
-//   for (int i = 0; i < myDataSize; i++){
-//     printf("%d ", myDataSet[i]);
-//   }
-//   printf("\n\n");
-
-  //free
-  free(data); 
-  free(sendDataSetBuffer); 
-  free(recvDatasetBuffer); 
-  free(myDataSet);
-
   MPI_Finalize();
   return 0;
 }
 
+// returns 1 if an array is not sorted, 0 if sorted properly
+int notSorted(int *data, int size){
+  int prev = 0;
+  for (int i = 0; i < size; i++){
+    if (data[i] < prev){
+      return 1;
+    }
+  }
+  return 0;
+}
 
 //generates data [0,MAXVAL)
 void generateData(int * data, int SIZE)
