@@ -18,7 +18,6 @@ int compfn (const void * a, const void * b)
 
 //Do not change the seed
 #define SEED 72
-// TODO: revert
 #define MAXVAL 1000000
 
 //Total input size is N, divided by nprocs
@@ -61,10 +60,10 @@ int main(int argc, char **argv) {
   double global_dist_time;
   double global_sort_time;
   double global_total_time;
-  long int local_sum = 0;
-  long int local_sum_unsorted = 0;
-  long int global_sum = 0;
-  long int global_sum_unsorted = 0;
+  unsigned long long int local_sum = 0;
+  unsigned long long int local_sum_unsorted = 0;
+  unsigned long long int global_sum = 0;
+  unsigned long long int global_sum_unsorted = 0;
 
   // Set bucket value indices
   int bucketSize = MAXVAL / nprocs;
@@ -151,9 +150,9 @@ int main(int argc, char **argv) {
   MPI_Reduce(&local_sum, &global_sum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
   if(my_rank==0){
     if (global_sum == global_sum_unsorted){
-      printf("Global sum %d == unsorted global sum %d\n", global_sum, global_sum_unsorted);
+      printf("Global sum %llu == unsorted global sum %llu\n", global_sum, global_sum_unsorted);
     } else {
-      printf("Global sum %d != unsorted global sum %d\n", global_sum, global_sum_unsorted);
+      printf("Global sum %llu!= unsorted global sum %llu\n", global_sum, global_sum_unsorted);
     }
   }
 
