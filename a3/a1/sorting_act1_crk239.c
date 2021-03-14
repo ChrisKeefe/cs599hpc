@@ -156,9 +156,15 @@ int main(int argc, char **argv) {
     if (global_sum == global_sum_unsorted){
       printf("Global sum %llu == unsorted global sum %llu\n", global_sum, global_sum_unsorted);
     } else {
-      printf("Global sum %llu!= unsorted global sum %llu\n", global_sum, global_sum_unsorted);
+      printf("Global sum %llu != unsorted global sum %llu\n", global_sum, global_sum_unsorted);
     }
   }
+
+  //free
+  free(data);
+  free(sendDataSetBuffer);
+  free(recvDatasetBuffer);
+  free(myDataSet);
 
   MPI_Finalize();
   return 0;
