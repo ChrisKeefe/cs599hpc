@@ -95,64 +95,42 @@ int main(int argc, char **argv) {
     // Actually send/receive the data
     if (destBucketIdx != my_rank){
 
+// Send buffers look great!
 if(my_rank == 0){
-  printf("rank: %d\n", my_rank);
-  printf("final send buffer: %d\n", nValsToSend);
+  printf("rank: %d, send buffer sz: %d\n", my_rank, nValsToSend);
   for (int i = 0; i < nValsToSend; i++ ){
     printf("%d ", sendDataSetBuffer[i]);
   }
  printf("\n\n");
-} 
-      // TODO: Make sure we're not dropping values here by assigning direct to myDataSet
-      MPI_Isend(sendDataSetBuffer, nValsToSend, MPI_INT, destBucketIdx, 0, MPI_COMM_WORLD, &req);
-      // receive
+}
+
       int max_sent = localN - myDataSize;
       int actual_sent;
       // TODO: See if we can remove this source_rank calc in favor of MPI_ANY_SOURCE
       int source_rank = (my_rank + nprocs - i) % nprocs;
+      MPI_Isend(sendDataSetBuffer, nValsToSend, MPI_INT, destBucketIdx, 0, MPI_COMM_WORLD, &req);
       MPI_Recv(recvDatasetBuffer, max_sent, MPI_INT, source_rank, 0, MPI_COMM_WORLD, &status);
       MPI_Get_count(&status, MPI_INT, &actual_sent);
-
+      MPI_Wait(&req, &status);
+      memcpy((void*)(myDataSet + sizeof(int) * myDataSize), (void *)recvDatasetBuffer, sizeof(int) * actual_sent);
       myDataSize += actual_sent;
-
-if(my_rank == i % nprocs){
- printf("rank: %d\n", my_rank);
- printf("received: %d\n", actual_sent);
+if(my_rank == 1){
+  printf("rank: %d, received sz: %d\n", my_rank, actual_sent);
   for (int i = 0; i < actual_sent; i++ ){
     printf("%d ", recvDatasetBuffer[i]);
   }
- printf("\n");
-} 
-
-// if(my_rank == i % nprocs){
-//  printf("rank: %d\n", my_rank);
-//  printf("local bucket\n");
-//   for (int i = 0; i < actual_sent; i++ ){
-//     printf("%d ", myDataSet[myDataSize + i]);
-//   }
-//  printf("\n");
-//  printf("data size: %d\n\n", myDataSize);
-// } 
-
-      // printf("data size: %d\n\n", myDataSize);
-      MPI_Wait(&req, &status);
+ printf("\n\n");
+}
     }
   }
 
-
-// printf("r: %d, data size: %d\n", my_rank, myDataSize);
-//  if(my_rank == 0){
-//    printf("rank: %d\n", my_rank);
-//    printf("final send buffer\n");
-//    for (int i = 0; i < nValsToSend; i++ ){
-//      printf("%d ", sendDataSetBuffer[i]);
-//    }
-//   printf("\nlocal bucket\n");
-//    for (int i = 0; i < myDataSize; i++ ){
-//      printf("%d ", myDataSet[i]);
-//    }
+// Check all values at rank0
+// if (my_rank == 0){
+//   for (int i = 0; i < myDataSize; i++){
+//     printf("%d ", myDataSet[i]);
+//   }
 //   printf("\n");
-//  } 
+// }
 
   // receive values from MPI_ANY_SOURCE?, add to myDataSet, and increment myDataSize
   // end loop
