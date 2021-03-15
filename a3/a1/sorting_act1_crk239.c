@@ -44,15 +44,6 @@ int main(int argc, char **argv) {
 
   generateData(data, localN);
 
-  // long long unsigned int thing = 0;
-  // printf("R: %d ", my_rank);
-  // for (int i = 0; i < localN; i++){
-  //   thing = thing + data[i];
-  //   printf("%d ", data[i]);
-  // }
-  // printf("\n");
-  // printf("R: %d sum %llu\n", my_rank, thing);
-
   int * sendDataSetBuffer=(int*)malloc(sizeof(int)*localN); //most that can be sent is localN elements
   int * recvDatasetBuffer=(int*)malloc(sizeof(int)*localN); //most that can be received is localN elements
   int * myDataSet=(int*)calloc(N, sizeof(int)); //upper bound size is N elements for the rank
@@ -155,8 +146,8 @@ int main(int argc, char **argv) {
   for (int i = 0; i < myDataSize; i++){
     local_sum = local_sum + myDataSet[i];
   }
-  MPI_Reduce(&local_sum_unsorted, &global_sum_unsorted, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-  MPI_Reduce(&local_sum, &global_sum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+  MPI_Reduce(&local_sum_unsorted, &global_sum_unsorted, 1, MPI_LONG_LONG_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+  MPI_Reduce(&local_sum, &global_sum, 1, MPI_LONG_LONG_INT, MPI_SUM, 0, MPI_COMM_WORLD);
   if(my_rank==0){
     if (global_sum == global_sum_unsorted){
       printf("Global sum %llu == unsorted global sum %llu\n", global_sum, global_sum_unsorted);
