@@ -44,6 +44,15 @@ int main(int argc, char **argv) {
 
   generateData(data, localN);
 
+  // long long unsigned int thing = 0;
+  // printf("R: %d ", my_rank);
+  // for (int i = 0; i < localN; i++){
+  //   thing = thing + data[i];
+  //   printf("%d ", data[i]);
+  // }
+  // printf("\n");
+  // printf("R: %d sum %llu\n", my_rank, thing);
+
   int * sendDataSetBuffer=(int*)malloc(sizeof(int)*localN); //most that can be sent is localN elements
   int * recvDatasetBuffer=(int*)malloc(sizeof(int)*localN); //most that can be received is localN elements
   int * myDataSet=(int*)calloc(N, sizeof(int)); //upper bound size is N elements for the rank
@@ -53,7 +62,7 @@ int main(int argc, char **argv) {
   double start_time = MPI_Wtime();
   
   // Step 1: Distribute data to correct ranks
-  MPI_Request req = MPI_SUCCESS;
+  MPI_Request req;
   MPI_Status status;
   unsigned int nValsToSend = 0;
   unsigned int myDataSize = 0;
@@ -104,7 +113,7 @@ int main(int argc, char **argv) {
       MPI_Get_count(&status, MPI_INT, &actual_sent);
       MPI_Wait(&req, &status);
       memcpy((void*)(myDataSet + myDataSize), (void *)recvDatasetBuffer, sizeof(int) * actual_sent);
-      myDataSize += actual_sent;
+      myDataSize = myDataSize + actual_sent;
     }
   }
 
@@ -141,10 +150,10 @@ int main(int argc, char **argv) {
   // Test that the global sum of all elements across all ranks before sorting
   // is the same as the global sum of all elements after sorting, using a reduction
   for (int i = 0; i < localN; i++){
-    local_sum_unsorted += data[i];
+    local_sum_unsorted = local_sum_unsorted + data[i];
   }
   for (int i = 0; i < myDataSize; i++){
-    local_sum += myDataSet[i];
+    local_sum = local_sum + myDataSet[i];
   }
   MPI_Reduce(&local_sum_unsorted, &global_sum_unsorted, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
   MPI_Reduce(&local_sum, &global_sum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
