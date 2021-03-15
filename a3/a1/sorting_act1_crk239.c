@@ -109,14 +109,15 @@ int main(int argc, char **argv) {
   }
 
   // Print time to distribute
-  double distrib_time = MPI_Wtime() - start_time;
+  double distrib_timestamp = MPI_Wtime();
+  double distrib_time = distrib_timestamp - start_time;
 
 
   // Step 2: Sort data at each rank with qsort
   qsort((void*)myDataSet, myDataSize, sizeof(int), &compfn);
 
   // End timer and display total time
-  double sort_time = MPI_Wtime() - distrib_time;
+  double sort_time = MPI_Wtime() - distrib_timestamp;
   double total_time = sort_time + distrib_time;
   MPI_Reduce(&distrib_time, &global_dist_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
   MPI_Reduce(&sort_time, &global_sort_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
