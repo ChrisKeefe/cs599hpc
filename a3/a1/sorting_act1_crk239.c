@@ -102,9 +102,9 @@ int main(int argc, char **argv) {
       MPI_Isend(sendDataSetBuffer, nValsToSend, MPI_INT, destBucketIdx, 0, MPI_COMM_WORLD, &req);
       MPI_Recv(recvDatasetBuffer, max_sendable, MPI_INT, source_rank, 0, MPI_COMM_WORLD, &status);
       MPI_Get_count(&status, MPI_INT, &actual_sent);
-      MPI_Wait(&req, &status);
       memcpy((void*)(myDataSet + myDataSize), (void *)recvDatasetBuffer, sizeof(int) * actual_sent);
       myDataSize = myDataSize + actual_sent;
+      MPI_Wait(&req, &status);
     }
   }
 
