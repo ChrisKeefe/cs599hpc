@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --account=cs599-spr21
 #SBATCH --job-name=sort1            # In practice, this is superseded from the CLI
-#SBATCH --time=15:00				# 15 min
-#SBATCH --mem=16000                  # 160GB
+#SBATCH --time=8:00 				# 15 min
+#SBATCH --mem=16000                 # 160GB
 #SBATCH --nodes=1
 #SBATCH --ntasks=10                 # Also superseded from the CLI
 #SBATCH --cpus-per-task=1
