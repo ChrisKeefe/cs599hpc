@@ -6,6 +6,7 @@
 #include <string.h>
 
 void generateData(int * data, int SIZE);
+int notSorted(int *data, int size);
 
 
 int compfn (const void * a, const void * b)
@@ -20,7 +21,7 @@ int compfn (const void * a, const void * b)
 
 //Total input size is N, divided by nprocs
 //Doesn't matter if N doesn't evenly divide nprocs
-#define N 1000000000
+#define N 100
 
 int main(int argc, char **argv) {
 
@@ -190,3 +191,13 @@ void generateData(int * data, int SIZE)
   }
 }
 
+// returns 1 if an array is not sorted, 0 if sorted properly
+int notSorted(int *data, int size){
+  int prev = 0;
+  for (int i = 0; i < size; i++){
+    if (data[i] < prev){
+      return 1;
+    }
+  }
+  return 0;
+}
