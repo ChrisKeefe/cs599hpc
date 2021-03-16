@@ -21,7 +21,7 @@ int compfn (const void * a, const void * b)
 
 //Total input size is N, divided by nprocs
 //Doesn't matter if N doesn't evenly divide nprocs
-#define N 100
+#define N 1000000000
 
 int main(int argc, char **argv) {
 
