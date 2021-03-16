@@ -1,0 +1,28 @@
+sort1
+global distrib time: 1.591780, global sort time: 177.954243, global total time: 179.546023
+global distrib time: 1.626750, global sort time: 178.206099, global total time: 179.832849
+global distrib time: 1.631345, global sort time: 178.176536, global total time: 179.807881
+sort2
+global distrib time: 3.462744, global sort time: 154.967688, global total time: 158.430431
+global distrib time: 3.413508, global sort time: 130.592138, global total time: 134.005646
+global distrib time: 3.544496, global sort time: 155.179484, global total time: 158.723980
+sort4
+global distrib time: 5.012580, global sort time: 109.648981, global total time: 114.661560
+global distrib time: 4.997223, global sort time: 109.817621, global total time: 114.814844
+global distrib time: 5.067290, global sort time: 109.892945, global total time: 114.960235
+sort8
+global distrib time: 5.388420, global sort time: 65.969048, global total time: 71.199765
+global distrib time: 5.392312, global sort time: 65.490724, global total time: 70.724906
+global distrib time: 5.373992, global sort time: 55.600954, global total time: 60.821654
+sort12
+global distrib time: 5.202929, global sort time: 46.463718, global total time: 51.393403
+global distrib time: 5.235757, global sort time: 46.434711, global total time: 51.378715
+global distrib time: 5.196499, global sort time: 46.850079, global total time: 51.786976
+sort16
+global distrib time: 4.969655, global sort time: 35.790122, global total time: 40.619913
+global distrib time: 4.974252, global sort time: 35.706586, global total time: 40.537669
+global distrib time: 4.979458, global sort time: 30.424378, global total time: 35.248069
+sort20
+global distrib time: 4.790984, global sort time: 24.419462, global total time: 29.028021
+global distrib time: 4.779974, global sort time: 24.761790, global total time: 29.382255
+global distrib time: 4.746637, global sort time: 28.812637, global total time: 33.414097

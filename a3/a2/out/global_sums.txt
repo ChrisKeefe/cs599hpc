@@ -1,0 +1,28 @@
+sort1
+Global sum 231347569226388 == unsorted global sum 231347569226388
+Global sum 231347569226388 == unsorted global sum 231347569226388
+Global sum 231347569226388 == unsorted global sum 231347569226388
+sort2
+Global sum 231345039566716 == unsorted global sum 231345039566716
+Global sum 231345039566716 == unsorted global sum 231345039566716
+Global sum 231345039566716 == unsorted global sum 231345039566716
+sort4
+Global sum 231348974505153 == unsorted global sum 231348974505153
+Global sum 231348974505153 == unsorted global sum 231348974505153
+Global sum 231348974505153 == unsorted global sum 231348974505153
+sort8
+Global sum 231346368407353 == unsorted global sum 231346368407353
+Global sum 231346368407353 == unsorted global sum 231346368407353
+Global sum 231346368407353 == unsorted global sum 231346368407353
+sort12
+Global sum 231344540852148 == unsorted global sum 231344540852148
+Global sum 231344540852148 == unsorted global sum 231344540852148
+Global sum 231344540852148 == unsorted global sum 231344540852148
+sort16
+Global sum 231346601181947 == unsorted global sum 231346601181947
+Global sum 231346601181947 == unsorted global sum 231346601181947
+Global sum 231346601181947 == unsorted global sum 231346601181947
+sort20
+Global sum 231347819319091 == unsorted global sum 231347819319091
+Global sum 231347819319091 == unsorted global sum 231347819319091
+Global sum 231347819319091 == unsorted global sum 231347819319091
