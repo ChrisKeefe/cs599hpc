@@ -18,10 +18,13 @@ int compfn (const void * a, const void * b)
 //Do not change the seed
 #define SEED 72
 #define MAXVAL 1000000
+// #define NBINS 1000
+#define NBINS 1000
 
 //Total input size is N, divided by nprocs
 //Doesn't matter if N doesn't evenly divide nprocs
-#define N 1000000000
+// #define N 1000000000
+#define N 100000
 
 int main(int argc, char **argv) {
 
@@ -46,11 +49,13 @@ int main(int argc, char **argv) {
   int * sendDataSetBuffer=(int*)malloc(sizeof(int)*localN); //most that can be sent is localN elements
   int * recvDatasetBuffer=(int*)malloc(sizeof(int)*localN); //most that can be received is localN elements
   int * myDataSet=(int*)calloc(N, sizeof(int)); //upper bound size is N elements for the rank
-
+  int * binCounts=(int*)calloc(NBINS, sizeof(int));
+  int * startIndices=(int*)malloc(sizeof(int) * NBINS);
+  int * endIndices=(int*)malloc(sizeof(int) * NBINS);
 
   //Write code here
   double start_time = MPI_Wtime();
-  
+
   // Step 1: Distribute data to correct ranks
   MPI_Request req;
   MPI_Status status;
@@ -64,14 +69,57 @@ int main(int argc, char **argv) {
   unsigned long long int global_sum = 0;
   unsigned long long int global_sum_unsorted = 0;
 
+  int binSize = MAXVAL / NBINS;
+  int cumSum = 0;
+
+  if (my_rank == 0){
+    // populate histogram array of counts in equally-sized bins
+    for (int i=0; i < localN; i++){
+      // printf("Val: %d", data[i]);
+      // printf(" bin: %d\n", data[i] / binSize);
+      binCounts[data[i] / binSize]++;
+    }
+
+    // We want each rank to sort roughly as many data points as they started with
+    int endIdxCtr = 0;
+    int roughBucketSize = localN;
+    int nextBucketSize = roughBucketSize;
+    // iterate over histogram bins, setting indices that distribute the data roughly evenly
+    // printf("CumSum: %d\n", cumSum);
+    for (int binNum=0; binNum < NBINS; binNum++){
+      // printf("count: %d", binCounts[binNum]);
+      cumSum = binCounts[binNum] + cumSum;
+      // printf(" CumSum: %d\n", cumSum);
+      if (endIdxCtr == nprocs - 1){
+        // printf(" CumSum: %d\n", cumSum);
+        endIndices[endIdxCtr] = MAXVAL;
+        break;
+      }
+
+      if (cumSum * nprocs >= nextBucketSize){
+        // printf(" CumSum: %d\n", cumSum);
+        nextBucketSize += roughBucketSize;
+        endIndices[endIdxCtr++] = binNum * binSize;
+      }
+    }
+
+    // printf("End indices: ");
+    // for (int i = 0; i < nprocs; i++){
+    //   printf("%d ", endIndices[i]);
+    // }
+    // printf("\n");
+    // TODO: ship endIndices
+  }
+
+  // local ranks can calculate startIndices (avoid network overhead)
+  // TODO: adjust bucketstart and bucketEnd assignments here and in the logic
+
   // Set bucket value indices
   int bucketSize = MAXVAL / nprocs;
   int myBucketStart = my_rank * bucketSize;
   // set bucket end, handling cases where MAXVAL % nprocs != 0
   int myBucketEnd = (my_rank != nprocs -1) ? (myBucketStart + bucketSize - 1) : MAXVAL;
   
-  printf("HERE\n");
-
 //  // read and distributes data once per rank
 //  for (int i = 0; i < nprocs; i++){
 //    nValsToSend = 0;
