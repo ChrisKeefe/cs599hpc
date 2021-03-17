@@ -73,8 +73,6 @@ int main(int argc, char **argv) {
   if (my_rank == 0){
     // populate histogram array of counts in equally-sized bins
     for (int i=0; i < localN; i++){
-      // printf("Val: %d", data[i]);
-      // printf(" bin: %d\n", data[i] / binSize);
       binCounts[data[i] / binSize]++;
     }
 
@@ -83,19 +81,14 @@ int main(int argc, char **argv) {
     int roughBucketSize = localN;
     int nextBucketSize = roughBucketSize;
     // iterate over histogram bins, setting indices that distribute the data roughly evenly
-    // printf("CumSum: %d\n", cumSum);
     for (int binNum=0; binNum < NBINS; binNum++){
-      // printf("count: %d", binCounts[binNum]);
       cumSum = binCounts[binNum] + cumSum;
-      // printf(" CumSum: %d\n", cumSum);
       if (endIdxCtr == nprocs - 1){
-        // printf(" CumSum: %d\n", cumSum);
         endIndices[endIdxCtr] = MAXVAL;
         break;
       }
 
       if (cumSum * nprocs >= nextBucketSize){
-        // printf(" CumSum: %d\n", cumSum);
         nextBucketSize += roughBucketSize;
         endIndices[endIdxCtr++] = binNum * binSize;
       }
@@ -103,25 +96,12 @@ int main(int argc, char **argv) {
 
   }
   MPI_Bcast(endIndices, nprocs, MPI_INT, 0, MPI_COMM_WORLD);
-  // printf("End indices: ");
-  // for (int i = 0; i < nprocs; i++){
-  //   printf("%d ", endIndices[i]);
-  // }
-  // printf("\n");
 
   // local ranks can calculate startIndices (avoid network overhead)
   // index 1 is already calloc'ed to 0
   for (int i = 1; i < nprocs; i++){
     startIndices[i] = endIndices[i-1] + 1;
   }
-
-  // printf("Start indices: ");
-  // for (int i = 0; i < nprocs; i++){
-  //   printf("%d ", startIndices[i]);
-  // }
-  // printf("\n");
-
-  // TODO: adjust bucketstart and bucketEnd assignments here and in the logic
 
   // Set bucket value indices
   int myBucketStart = startIndices[my_rank];
