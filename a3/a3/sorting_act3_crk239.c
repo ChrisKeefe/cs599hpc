@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
   int * recvDatasetBuffer=(int*)malloc(sizeof(int)*localN); //most that can be received is localN elements
   int * myDataSet=(int*)calloc(N, sizeof(int)); //upper bound size is N elements for the rank
   int * binCounts=(int*)calloc(NBINS, sizeof(int));
-  int * startIndices=(int*)malloc(sizeof(int) * nprocs);
+  int * startIndices=(int*)calloc(nprocs, sizeof(int));
   int * endIndices=(int*)malloc(sizeof(int) * nprocs);
 
   //Write code here
@@ -112,6 +112,17 @@ int main(int argc, char **argv) {
   // printf("\n");
 
   // local ranks can calculate startIndices (avoid network overhead)
+  // index 1 is already calloc'ed to 0
+  for (int i = 1; i < nprocs; i++){
+    startIndices[i] = endIndices[i-1] + 1;
+  }
+
+  // printf("Start indices: ");
+  // for (int i = 0; i < nprocs; i++){
+  //   printf("%d ", startIndices[i]);
+  // }
+  // printf("\n");
+
   // TODO: adjust bucketstart and bucketEnd assignments here and in the logic
 
   // Set bucket value indices
