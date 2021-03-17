@@ -50,8 +50,8 @@ int main(int argc, char **argv) {
   int * recvDatasetBuffer=(int*)malloc(sizeof(int)*localN); //most that can be received is localN elements
   int * myDataSet=(int*)calloc(N, sizeof(int)); //upper bound size is N elements for the rank
   int * binCounts=(int*)calloc(NBINS, sizeof(int));
-  int * startIndices=(int*)malloc(sizeof(int) * NBINS);
-  int * endIndices=(int*)malloc(sizeof(int) * NBINS);
+  int * startIndices=(int*)malloc(sizeof(int) * nprocs);
+  int * endIndices=(int*)malloc(sizeof(int) * nprocs);
 
   //Write code here
   double start_time = MPI_Wtime();
@@ -103,13 +103,13 @@ int main(int argc, char **argv) {
       }
     }
 
-    // printf("End indices: ");
-    // for (int i = 0; i < nprocs; i++){
-    //   printf("%d ", endIndices[i]);
-    // }
-    // printf("\n");
-    // TODO: ship endIndices
   }
+  MPI_Bcast(endIndices, nprocs, MPI_INT, 0, MPI_COMM_WORLD);
+  // printf("End indices: ");
+  // for (int i = 0; i < nprocs; i++){
+  //   printf("%d ", endIndices[i]);
+  // }
+  // printf("\n");
 
   // local ranks can calculate startIndices (avoid network overhead)
   // TODO: adjust bucketstart and bucketEnd assignments here and in the logic
