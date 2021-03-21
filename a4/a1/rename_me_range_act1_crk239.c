@@ -74,6 +74,7 @@ int main(int argc, char **argv) {
   int diagnostic_rank = 0;
   unsigned long int localSum = 0;
   unsigned long int globalSum = 0;
+  double startTime, endTime, elapsed, globalTime;
 
 if(diagnostics_flg){
   // print all data vals at root
@@ -97,6 +98,7 @@ if(diagnostics_flg){
   MPI_Barrier(MPI_COMM_WORLD);
 }
 
+startTime = MPI_Wtime();
 // Calculate the number of hits per query
   for (int qn = 0; qn < localQ; qn++){
     for (int pt = 0; pt < localN; pt++){
@@ -116,6 +118,9 @@ if(diagnostics_flg){
     }
   }
 
+endTime = MPI_Wtime();
+elapsed = endTime - startTime;
+
   // Calculate a local sum
   for (int rn = 0; rn < localQ; rn++){
     localSum += numResults[rn];
@@ -124,10 +129,13 @@ if(diagnostics_flg){
   printf("Rank %d local Sum: %lu\n", my_rank, localSum);
 
   MPI_Reduce(&localSum, &globalSum, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
-  
+  MPI_Reduce(&elapsed, &globalTime, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+
   if (my_rank == 0){
     printf("Rank %d global Sum: %lu\n", my_rank, globalSum);
+    printf("Response time: %lf\n", globalTime);
   }
+
   // cleanup
   free(numResults);
   free(data);
