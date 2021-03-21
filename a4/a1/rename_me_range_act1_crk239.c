@@ -126,13 +126,15 @@ elapsed = endTime - startTime;
     localSum += numResults[rn];
   }
 
-  printf("Rank %d local Sum: %lu\n", my_rank, localSum);
+  if (diagnostics_flg){
+    printf("Rank %d local Sum: %lu\n", my_rank, localSum);
+  }
 
   MPI_Reduce(&localSum, &globalSum, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
   MPI_Reduce(&elapsed, &globalTime, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
   if (my_rank == 0){
-    printf("Rank %d global Sum: %lu\n", my_rank, globalSum);
+    printf("Global Sum: %lu\n", my_rank, globalSum);
     printf("Response time: %lf\n", globalTime);
   }
 
