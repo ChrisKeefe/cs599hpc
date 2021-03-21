@@ -70,28 +70,32 @@ int main(int argc, char **argv) {
 
 
   // Write code here
+  int diagnostics_flg = 0;
+  int diagnostic_rank = 0;
   unsigned long int localSum = 0;
   unsigned long int globalSum = 0;
 
-  // // print all data vals at root
-  // if (my_rank == 0){
-  //   printf("Data values:\n");
-  //   for (int i = 0; i < N; i++){
-  //     printf("(%lf, %lf)\n", data[i].x, data[i].y);
-  //   }
-  //   printf("\n");
-  // }
+if(diagnostics_flg){
+  // print all data vals at root
+  if (my_rank == diagnostic_rank){
+    printf("Data values:\n");
+    for (int i = 0; i < N; i++){
+      printf("(%lf, %lf)\n", data[i].x, data[i].y);
+    }
+    printf("\n");
+  }
 
   // print all query vals at some rank
-  // MPI_Barrier(MPI_COMM_WORLD);
-  // if (my_rank == 0){
-  //   printf("Rank %d queries\n", my_rank);
-  //   for (int i = 0; i < localQ; i++){
-  //     printf("(%lf, %lf), (%lf, %lf)\n", queries[i].x_min, queries[i].y_min, queries[i].x_max, queries[i].y_max);
-  //   }
-  //   printf("\n");
-  // }
-  // MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
+  if (my_rank == diagnostic_rank){
+    printf("Rank %d queries\n", my_rank);
+    for (int i = 0; i < localQ; i++){
+      printf("(%lf, %lf), (%lf, %lf)\n", queries[i].x_min, queries[i].y_min, queries[i].x_max, queries[i].y_max);
+    }
+    printf("\n");
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
+}
 
 // Calculate the number of hits per query
   for (int qn = 0; qn < localQ; qn++){
@@ -101,11 +105,13 @@ int main(int argc, char **argv) {
               data[pt].y < queries[qn].y_min || data[pt].y > queries[qn].y_max)){
         numResults[qn]++;
 
-        // if (my_rank == 0){
-        //   printf("R %d query %d is a hit, ", my_rank, qn);
-        //   printf("(%lf, %lf) is in ", data[pt].x, data[pt].y);
-        //   printf("(%lf, %lf), (%lf, %lf)\n", queries[qn].x_min, queries[qn].y_min, queries[qn].x_max, queries[qn].y_max);
-        // }
+        if(diagnostics_flg){
+          if (my_rank == diagnostic_rank){
+            printf("R %d query %d is a hit, ", my_rank, qn);
+            printf("(%lf, %lf) is in ", data[pt].x, data[pt].y);
+            printf("(%lf, %lf), (%lf, %lf)\n", queries[qn].x_min, queries[qn].y_min, queries[qn].x_max, queries[qn].y_max);
+          }
+        }
       }
     }
   }
@@ -117,6 +123,11 @@ int main(int argc, char **argv) {
 
   printf("Rank %d local Sum: %lu\n", my_rank, localSum);
 
+  MPI_Reduce(&localSum, &globalSum, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+  
+  if (my_rank == 0){
+    printf("Rank %d global Sum: %lu\n", my_rank, globalSum);
+  }
   // cleanup
   free(numResults);
   free(data);
