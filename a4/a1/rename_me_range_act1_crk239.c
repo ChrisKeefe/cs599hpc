@@ -9,7 +9,7 @@
 //mpicc -O3 range_act1_crk239.c -lm -o range
 
 //Example execution
-//mpirun -np 1 -hostfile ../myhostfile.txt ./range 100 100
+//mpirun -np 1 -hostfile ../myhostfile.txt ./range 2000000 100000
 
 struct dataStruct
 {
@@ -70,10 +70,52 @@ int main(int argc, char **argv) {
 
 
   // Write code here
+  unsigned long int localSum = 0;
+  unsigned long int globalSum = 0;
 
+  // // print all data vals at root
+  // if (my_rank == 0){
+  //   printf("Data values:\n");
+  //   for (int i = 0; i < N; i++){
+  //     printf("(%lf, %lf)\n", data[i].x, data[i].y);
+  //   }
+  //   printf("\n");
+  // }
 
+  // print all query vals at some rank
+  // MPI_Barrier(MPI_COMM_WORLD);
+  // if (my_rank == 0){
+  //   printf("Rank %d queries\n", my_rank);
+  //   for (int i = 0; i < localQ; i++){
+  //     printf("(%lf, %lf), (%lf, %lf)\n", queries[i].x_min, queries[i].y_min, queries[i].x_max, queries[i].y_max);
+  //   }
+  //   printf("\n");
+  // }
+  // MPI_Barrier(MPI_COMM_WORLD);
 
+// Calculate the number of hits per query
+  for (int qn = 0; qn < localQ; qn++){
+    for (int pt = 0; pt < localN; pt++){
+      // Focusing on exclusion allows us to short-circuit away many checks
+      if ( ! (data[pt].x < queries[qn].x_min || data[pt].x > queries[qn].x_max ||
+              data[pt].y < queries[qn].y_min || data[pt].y > queries[qn].y_max)){
+        numResults[qn]++;
 
+        // if (my_rank == 0){
+        //   printf("R %d query %d is a hit, ", my_rank, qn);
+        //   printf("(%lf, %lf) is in ", data[pt].x, data[pt].y);
+        //   printf("(%lf, %lf), (%lf, %lf)\n", queries[qn].x_min, queries[qn].y_min, queries[qn].x_max, queries[qn].y_max);
+        // }
+      }
+    }
+  }
+
+  // Calculate a local sum
+  for (int rn = 0; rn < localQ; rn++){
+    localSum += numResults[rn];
+  }
+
+  printf("Rank %d local Sum: %lu\n", my_rank, localSum);
 
   // cleanup
   free(numResults);
