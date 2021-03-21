@@ -4,16 +4,12 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include "RTree.h"
-
 
 //Example compilation
-//mpic++ -O3 range_query_rtree_starter.cpp -lm -o range_query_rtree_starter
+//mpicc -O3 range_act1_crk239.c -lm -o range
 
 //Example execution
-//mpirun -np 1 -hostfile myhostfile.txt ./range_query_rtree_starter 1000000 1000
-
-
+//mpirun -np 1 -hostfile ../myhostfile.txt ./range 100 100
 
 struct dataStruct
 {
@@ -29,45 +25,13 @@ struct queryStruct
   double y_max;
 };
 
-///////////////////////
-//For R-tree
-
-bool MySearchCallback(int id, void* arg) 
-{
-  // printf("Hit data rect %d\n", id);
-  return true; // keep going
-}
-
-struct Rect
-{
-  Rect()  {}
-
-  Rect(double a_minX, double a_minY, double a_maxX, double a_maxY)
-  {
-    min[0] = a_minX;
-    min[1] = a_minY;
-
-    max[0] = a_maxX;
-    max[1] = a_maxY;
-  }
-
-
-  double min[2];
-  double max[2];
-};
-
-///////////////////////
-
 void generateData(struct dataStruct * data, unsigned int localN);
 void generateQueries(struct queryStruct * data, unsigned int localQ, int my_rank);
-
 
 //Do not change constants
 #define SEED 72
 #define MAXVAL 100.0
-#define QUERYRNG 10.0 
-
-
+#define QUERYRNG 10.0
 
 int main(int argc, char **argv) {
 
@@ -78,23 +42,16 @@ int main(int argc, char **argv) {
   MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
 
   //Process command-line arguments
-  int N;
-  int Q;
-  
-
   if (argc != 3) {
-    fprintf(stderr,"Please provide the following on the command line: <Num data points> <Num query points>\n");
+    fprintf(stderr,"Please provide the following on the command line: <Num data points> <Num query points> \n");
     MPI_Finalize();
     exit(0);
   }
 
+  int N;
+  int Q;
   sscanf(argv[1],"%d",&N);
   sscanf(argv[2],"%d",&Q);
-  
-  
-
-
-  
   const unsigned int localN=N;
   const unsigned int localQ=Q/nprocs;
 
@@ -109,10 +66,13 @@ int main(int argc, char **argv) {
   struct queryStruct * queries=(struct queryStruct *)malloc(sizeof(struct queryStruct)*localQ);
   generateQueries(queries, localQ, my_rank);
 
-  MPI_Barrier(MPI_COMM_WORLD);   
+  MPI_Barrier(MPI_COMM_WORLD);
 
 
-  //Write code here
+  // Write code here
+
+
+
 
 
   // cleanup
@@ -134,8 +94,8 @@ void generateData(struct dataStruct * data, unsigned int localN)
   srand(SEED);
   for (int i=0; i<localN; i++)
   {
-        data[i].x=((double)rand()/(double)(RAND_MAX))*MAXVAL;      
-        data[i].y=((double)rand()/(double)(RAND_MAX))*MAXVAL;      
+        data[i].x=((double)rand()/(double)(RAND_MAX))*MAXVAL;
+        data[i].y=((double)rand()/(double)(RAND_MAX))*MAXVAL;
   }
 }
 
@@ -152,12 +112,12 @@ void generateQueries(struct queryStruct * data, unsigned int localQ, int my_rank
   srand(SEED+my_rank);
   for (int i=0; i<localQ; i++)
   {
-        data[i].x_min=((double)rand()/(double)(RAND_MAX))*MAXVAL;      
+        data[i].x_min=((double)rand()/(double)(RAND_MAX))*MAXVAL;
         data[i].y_min=((double)rand()/(double)(RAND_MAX))*MAXVAL;
-        
-        double d1=((double)rand()/(double)(RAND_MAX))*QUERYRNG;      
-        double d2=((double)rand()/(double)(RAND_MAX))*QUERYRNG;      
-        data[i].x_max=data[i].x_min+d1;      
+
+        double d1=((double)rand()/(double)(RAND_MAX))*QUERYRNG;
+        double d2=((double)rand()/(double)(RAND_MAX))*QUERYRNG;
+        data[i].x_max=data[i].x_min+d1;
         data[i].y_max=data[i].y_min+d2;
   }
 }
