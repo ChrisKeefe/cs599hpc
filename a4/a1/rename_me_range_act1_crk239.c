@@ -134,7 +134,7 @@ elapsed = endTime - startTime;
   MPI_Reduce(&elapsed, &globalTime, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
   if (my_rank == 0){
-    printf("Global Sum: %lu\n", my_rank, globalSum);
+    printf("Global Sum: %lu\n", globalSum);
     printf("Response time: %lf\n", globalTime);
   }
 
