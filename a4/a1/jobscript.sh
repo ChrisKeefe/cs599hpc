@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=cs599-spr21
 #SBATCH --job-name=range3            # In practice, this is superseded from the CLI
-#SBATCH --time=10:00 	            # 10 min
+#SBATCH --time=17:00 	            # 10 min
 #SBATCH --mem=16000                 # 16GB
 #SBATCH --nodes=1
 #SBATCH --ntasks=10                 # Also superseded from the CLI
@@ -12,4 +12,4 @@
 
 module load openmpi
 
-srun ${PREFIX}/a${ASSIGN}/a${ACTIVITY}/${OUTFILE}
+srun ${PREFIX}/a${ASSIGN}/a${ACTIVITY}/${OUTFILE} 2000000 100000
