@@ -68,6 +68,7 @@ int main(int argc, char **argv) {
 
   MPI_Barrier(MPI_COMM_WORLD);
 
+  // TODO: Remove diagnostic prints
 
   // Write code here
   int diagnostics_flg = 0;
@@ -130,6 +131,7 @@ elapsed = endTime - startTime;
     printf("Rank %d local Sum: %lu\n", my_rank, localSum);
   }
 
+  // Calculate and print global sum and time
   MPI_Reduce(&localSum, &globalSum, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
   MPI_Reduce(&elapsed, &globalTime, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
