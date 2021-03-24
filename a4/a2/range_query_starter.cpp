@@ -91,10 +91,6 @@ int main(int argc, char **argv) {
   sscanf(argv[1],"%d",&N);
   sscanf(argv[2],"%d",&Q);
   
-  
-
-
-  
   const unsigned int localN=N;
   const unsigned int localQ=Q/nprocs;
 
@@ -113,6 +109,49 @@ int main(int argc, char **argv) {
 
 
   //Write code here
+
+  // TODO: Remove diagnostic prints
+
+  double startTS, buildTS, endTS;
+  double buildTime, queryTime, elapsedTime;
+  double globalBuild, globalQuery, globalElapsed;
+  unsigned long int localSum = 0;
+  unsigned long int globalSum = 0;
+
+
+  startTS = MPI_Wtime();
+  // Construct the R tree
+  RTree<int, double, 2, double> tree;
+
+  for (int i = 0; i < localN; i++){
+    Rect tmp = Rect(data[i].x, data[i].y, data[i].x, data[i].y);
+    printf("x: %lf, y: %lf\n", data[i].x, data[i].y);
+    tree.Insert(tmp.min, tmp.max, i);
+  }
+  
+  buildTS = MPI_Wtime();
+  // Perform searches
+  for (int qn = 0; qn < localQ; qn++){
+    Rect query=Rect(queries[qn].x_min, queries[qn].y_min,
+                    queries[qn].x_max, queries[qn].y_max);
+    numResults[qn] = tree.Search(query.min, query.max, MySearchCallback, NULL);
+  }
+
+  endTS = MPI_Wtime();
+  // Calculate local timings and sums
+  buildTime = buildTS - startTS;
+  queryTime = endTS - buildTS;
+  elapsedTime = endTS - startTS;
+
+  // Calculate a local sum
+  for (int rn = 0; rn < localQ; rn++){
+    localSum += numResults[rn];
+  }
+
+  printf("buildTime: %lf, queryTime: %lf, elapsedTime: %lf\n", buildTime, queryTime, elapsedTime);
+  printf("Rank %d local Sum: %lu\n", my_rank, localSum);
+
+  // Calculate global timings and sums
 
 
   // cleanup
