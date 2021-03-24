@@ -8,7 +8,7 @@ export OUTFILE='range'
 
 module load openmpi
 
-mpicc ${PREFIX}/a${ASSIGN}/a${ACTIVITY}/${INFILE} -lm -O3 -o ${PREFIX}/a${ASSIGN}/a${ACTIVITY}/${OUTFILE}
+mpic++ ${PREFIX}/a${ASSIGN}/a${ACTIVITY}/${INFILE} -lm -O3 -o ${PREFIX}/a${ASSIGN}/a${ACTIVITY}/${OUTFILE}
 
 for ITER in 1 2 3 ; do
     for NPROCS in 1 4 8 12 16 20; do
