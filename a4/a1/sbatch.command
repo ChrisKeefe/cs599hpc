@@ -3,7 +3,7 @@
 export PREFIX='/scratch/crk239/cs599hpc'
 export ASSIGN='4'
 export ACTIVITY='1'
-export INFILE=rename_me_range_act${ACTIVITY}_crk239.c
+export INFILE=range_act${ACTIVITY}_crk239.c
 export OUTFILE='range'
 
 module load openmpi
