@@ -1,6 +1,6 @@
 from statistics import mean
 num_iterations = 3
-num_processor_counts = 6
+num_processor_counts = 5
 error_offset = 0
 write_lines = []
 sums = []
