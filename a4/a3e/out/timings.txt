@@ -1,0 +1,20 @@
+range4
+Times - build: 2.544894, query: 4.022591, total elapsed 6.557648
+Times - build: 2.547329, query: 3.979934, total elapsed 6.527263
+Times - build: 2.546593, query: 4.022302, total elapsed 6.568894
+range8
+Times - build: 2.641330, query: 2.106501, total elapsed 4.745965
+Times - build: 2.638022, query: 2.104365, total elapsed 4.736142
+Times - build: 2.641215, query: 2.100689, total elapsed 4.739298
+range12
+Times - build: 2.640329, query: 1.409106, total elapsed 4.049436
+Times - build: 2.651608, query: 1.415239, total elapsed 4.045861
+Times - build: 2.640152, query: 1.403821, total elapsed 4.038889
+range16
+Times - build: 2.683318, query: 1.060909, total elapsed 3.744098
+Times - build: 2.672794, query: 1.075998, total elapsed 3.738300
+Times - build: 2.673497, query: 1.061536, total elapsed 3.734707
+range20
+Times - build: 2.759884, query: 0.900559, total elapsed 3.638406
+Times - build: 2.760214, query: 0.895537, total elapsed 3.655498
+Times - build: 2.757738, query: 0.896750, total elapsed 3.649709

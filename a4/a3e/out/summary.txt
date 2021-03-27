@@ -1,0 +1,11 @@
+# As in act 3, NPROCS is off by 1 group
+NPROCS = 1, build = 2.5463, query = 4.0083, total = 6.5513, global sum: 469453172
+
+NPROCS = 4, build = 2.6402, query = 2.1039, total = 4.7405, global sum: 468426414
+
+NPROCS = 8, build = 2.644, query = 1.4094, total = 4.0447, global sum: 469588802
+
+NPROCS = 12, build = 2.6765, query = 1.0661, total = 3.739, global sum: 467780256
+
+NPROCS = 16, build = 2.7593, query = 0.8976, total = 3.6479, global sum: 467634204
+
