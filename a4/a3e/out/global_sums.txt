@@ -2,7 +2,21 @@ range4
 Global Sum: 469453172
 Global Sum: 469453172
 Global Sum: 469453172
+Global Sum: 469453172
+Global Sum: 469453172
+Global Sum: 469453172
+Global Sum: 469453172
+Global Sum: 469453172
+Global Sum: 469453172
+Global Sum: 469453172
 range8
+Global Sum: 468426414
+Global Sum: 468426414
+Global Sum: 468426414
+Global Sum: 468426414
+Global Sum: 468426414
+Global Sum: 468426414
+Global Sum: 468426414
 Global Sum: 468426414
 Global Sum: 468426414
 Global Sum: 468426414
@@ -10,11 +24,32 @@ range12
 Global Sum: 469588802
 Global Sum: 469588802
 Global Sum: 469588802
+Global Sum: 469588802
+Global Sum: 469588802
+Global Sum: 469588802
+Global Sum: 469588802
+Global Sum: 469588802
+Global Sum: 469588802
+Global Sum: 469588802
 range16
 Global Sum: 467780256
 Global Sum: 467780256
 Global Sum: 467780256
+Global Sum: 467780256
+Global Sum: 467780256
+Global Sum: 467780256
+Global Sum: 467780256
+Global Sum: 467780256
+Global Sum: 467780256
+Global Sum: 467780256
 range20
+Global Sum: 467634204
+Global Sum: 467634204
+Global Sum: 467634204
+Global Sum: 467634204
+Global Sum: 467634204
+Global Sum: 467634204
+Global Sum: 467634204
 Global Sum: 467634204
 Global Sum: 467634204
 Global Sum: 467634204
