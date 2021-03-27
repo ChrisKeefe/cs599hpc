@@ -1,5 +1,5 @@
 from statistics import mean
-num_iterations = 3
+num_iterations = 10
 num_processor_counts = 5
 error_offset = 0
 write_lines = []
