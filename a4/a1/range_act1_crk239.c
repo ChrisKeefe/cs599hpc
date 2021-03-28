@@ -68,36 +68,12 @@ int main(int argc, char **argv) {
 
   MPI_Barrier(MPI_COMM_WORLD);
 
-  // TODO: Remove diagnostic prints
-
   // Write code here
   int diagnostics_flg = 0;
   int diagnostic_rank = 0;
   unsigned long int localSum = 0;
   unsigned long int globalSum = 0;
   double startTime, endTime, elapsed, globalTime;
-
-if(diagnostics_flg){
-  // print all data vals at root
-  if (my_rank == diagnostic_rank){
-    printf("Data values:\n");
-    for (int i = 0; i < N; i++){
-      printf("(%lf, %lf)\n", data[i].x, data[i].y);
-    }
-    printf("\n");
-  }
-
-  // print all query vals at some rank
-  MPI_Barrier(MPI_COMM_WORLD);
-  if (my_rank == diagnostic_rank){
-    printf("Rank %d queries\n", my_rank);
-    for (int i = 0; i < localQ; i++){
-      printf("(%lf, %lf), (%lf, %lf)\n", queries[i].x_min, queries[i].y_min, queries[i].x_max, queries[i].y_max);
-    }
-    printf("\n");
-  }
-  MPI_Barrier(MPI_COMM_WORLD);
-}
 
 startTime = MPI_Wtime();
 // Calculate the number of hits per query
@@ -107,28 +83,16 @@ startTime = MPI_Wtime();
       if ( ! (data[pt].x < queries[qn].x_min || data[pt].x > queries[qn].x_max ||
               data[pt].y < queries[qn].y_min || data[pt].y > queries[qn].y_max)){
         numResults[qn]++;
-
-        if(diagnostics_flg){
-          if (my_rank == diagnostic_rank){
-            printf("R %d query %d is a hit, ", my_rank, qn);
-            printf("(%lf, %lf) is in ", data[pt].x, data[pt].y);
-            printf("(%lf, %lf), (%lf, %lf)\n", queries[qn].x_min, queries[qn].y_min, queries[qn].x_max, queries[qn].y_max);
-          }
-        }
       }
     }
   }
 
-endTime = MPI_Wtime();
-elapsed = endTime - startTime;
+  endTime = MPI_Wtime();
+  elapsed = endTime - startTime;
 
   // Calculate a local sum
   for (int rn = 0; rn < localQ; rn++){
     localSum += numResults[rn];
-  }
-
-  if (diagnostics_flg){
-    printf("Rank %d local Sum: %lu\n", my_rank, localSum);
   }
 
   // Calculate and print global sum and time

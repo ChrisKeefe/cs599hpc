@@ -110,8 +110,6 @@ int main(int argc, char **argv) {
 
   //Write code here
 
-  // TODO: Remove diagnostic prints
-
   double startTS, buildTS, endTS;
   double buildTime, queryTime, elapsedTime;
   double globalBuild, globalQuery, globalElapsed;
@@ -125,7 +123,6 @@ int main(int argc, char **argv) {
 
   for (int i = 0; i < localN; i++){
     Rect tmp = Rect(data[i].x, data[i].y, data[i].x, data[i].y);
-    // printf("x: %lf, y: %lf\n", data[i].x, data[i].y);
     tree.Insert(tmp.min, tmp.max, i);
   }
   
@@ -147,9 +144,6 @@ int main(int argc, char **argv) {
   for (int rn = 0; rn < localQ; rn++){
     localSum += numResults[rn];
   }
-
-  // printf("buildTime: %lf, queryTime: %lf, elapsedTime: %lf\n", buildTime, queryTime, elapsedTime);
-  // printf("Rank %d local Sum: %lu\n", my_rank, localSum);
 
   // Calculate global timings and sums
   MPI_Reduce(&localSum, &globalSum, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
