@@ -1,4 +1,4 @@
-from statistics import mean
+from statistics import mean, median
 num_iterations = 10
 num_processor_counts = 5
 error_offset = 0
@@ -35,9 +35,11 @@ with open("./timings.txt", "r") as fp:
         build_mean = 0
         que_mean = 0
         tot_mean = 0
+        que_vals = []
         for i in range(num_iterations):
             build_mean += grouples[i][0]
             que_mean += grouples[i][1]
+            que_vals.append(grouples[i][1])
             tot_mean += grouples[i][2]
         build_mean /= num_iterations
         que_mean /= num_iterations
@@ -46,8 +48,9 @@ with open("./timings.txt", "r") as fp:
             f"NPROCS = {nprocs}, "
             f"build = {round(build_mean, 4)}, "
             f"query = {round(que_mean, 4)}, "
-            f"total = {round(tot_mean, 4)}, ")
-        print(write_lines)
+            f"total = {round(tot_mean, 4)}, "
+            f"q_median = {round(median(que_vals), 4)}, ")
+        # print(write_lines)
 
 # Read in global sums
 with open("./global_sums.txt", "r") as sum_fp:
