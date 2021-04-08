@@ -89,8 +89,33 @@ int main(int argc, char **argv) {
 
   
   //Write code here
+  int niters = 0;
+  int first_points[nprocs];
+  int my_first_pt, my_last_pt;
 
+  if (my_rank == 0){
+    int numPoints = N / nprocs;
 
+    for (int i = 0; i < nprocs; i++){
+      first_points[i] = i * numPoints;
+    }
+  }
+
+  MPI_Bcast(&first_points, nprocs, MPI_INT, 0, MPI_COMM_WORLD);
+  my_first_pt = first_points[my_rank];
+  my_last_pt = (my_rank + 1 == nprocs) ? N - 1 : first_points[my_rank + 1] - 1;
+
+  // Generate initial centroids
+  // TODO: Use first K points in the data set
+
+  // Check for "convergence"
+  while (niters < KMEANSITERS){
+    // printf("HELLO HEIDI!\n");
+    // Assign points to nearest centroid
+    // Update cluster means
+    // TODO: if centroid has no nearest points, then re-initialize to (0, 0)
+    niters++;
+  }
 
   //free dataset
   for (int i=0; i<N; i++)
