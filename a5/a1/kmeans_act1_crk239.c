@@ -106,8 +106,23 @@ int main(int argc, char **argv) {
   my_last_pt = (my_rank + 1 == nprocs) ? N - 1 : first_points[my_rank + 1] - 1;
 
   // Generate initial centroids
-  // TODO: Use first K points in the data set
+  double **centroids=(double**)malloc(sizeof(double*)*KMEANS);
+  for (int i=0; i<KMEANS; i++)
+  {
+    centroids[i]=(double*)malloc(sizeof(double)*DIM);
+    for (int j=0; j<DIM; j++){
+      centroids[i][j] = dataset[i][j];
+    }
+  }
 
+// if (my_rank == nprocs - 1){
+//   for (int i=0; i<KMEANS; i++){
+//     printf("data pt %d: (%lf, %lf)\n", i, dataset[i][0], dataset[i][1]);
+//     printf("cent pt %d: (%lf, %lf)\n", i, centroids[i][0], centroids[i][1]);
+//   }
+// }
+
+  // TODO:
   // Check for "convergence"
   while (niters < KMEANSITERS){
     // printf("HELLO HEIDI!\n");
@@ -122,10 +137,15 @@ int main(int argc, char **argv) {
   {
     free(dataset[i]);
   }
-
   free(dataset);
-  MPI_Finalize();
 
+  // free centroids
+  for (int i=0; i<KMEANS; i++){
+    free(centroids[i]);
+  }
+  free(centroids);
+
+  MPI_Finalize();
   return 0;
 }
 
