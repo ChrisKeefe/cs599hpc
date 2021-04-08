@@ -149,6 +149,6 @@ int importDataset(char * fname, int DIM, int N, double ** dataset)
     fclose(fp);
 
 
-
+  return 0;
 }
 
