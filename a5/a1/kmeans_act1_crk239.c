@@ -115,13 +115,6 @@ int main(int argc, char **argv) {
     }
   }
 
-// if (my_rank == nprocs - 1){
-//   for (int i=0; i<KMEANS; i++){
-//     printf("data pt %d: (%lf, %lf)\n", i, dataset[i][0], dataset[i][1]);
-//     printf("cent pt %d: (%lf, %lf)\n", i, centroids[i][0], centroids[i][1]);
-//   }
-// }
-
   // TODO:
   // Check for "convergence"
   while (niters < KMEANSITERS){
