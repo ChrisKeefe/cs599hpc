@@ -116,27 +116,41 @@ int main(int argc, char **argv) {
   for (int i=0; i<KMEANS; i++)
   {
     for (int j=0; j<DIM; j++){
-      // printf("r: %d, ctr: %d, dim: %d, data: %f\t", my_rank, i, j, dataset[i][j]);
-      // if(j != 0){ printf("\n");}
       centroids[i*DIM + j] = dataset[i][j];
     }
   }
 
   // Check for "convergence" (using fixed number of iterations per spec)
   while (niters < KMEANSITERS){
+    // report cluster centers - remove my_rank condition to confirm centroids identical
+    if (my_rank == 0){
+      printf("\nCentroids at iteration %d r%d\n", niters, my_rank);
+      for (int ctr_dim = 0; ctr_dim < KMEANS * DIM; ctr_dim++){
+        printf("%f\t", centroids[ctr_dim]);
+        if (ctr_dim % DIM - 1 == 0){
+          printf("\n");
+        }
+      }
+    }
 
     // Assign points to nearest centroid
     int pt;
     for (pt = my_first_pt; pt <= my_last_pt; pt++){
       int nearest_ctr_idx = 0;
       double nearest_ctr_distance = DBL_MAX;
+      // printf("nearest center dist: %f, idx: %d\n", nearest_ctr_distance, nearest_ctr_idx);
+
+      // NOTE: This implementation does not require us to quantify total loss, so we
+      // can we can calculate distance to each center using squared euclidean
+      // distance for runtime efficiency, and we can keep only the resulting clustering
       for (int centroid = 0; centroid < KMEANS; centroid++ ){
-        // NOTE: This implementation does not require us to quantify total loss, so we
-        // can we can calculate distance to each center using squared euclidean
-        // distance for runtime efficiency, and we can keep only the resulting clustering
-        double diff, dist;
+        double diff = 0;
+        double dist = 0;
+        // calculate a distance for each point-centroid pair
         for (int dim = 0; dim < DIM; dim++) {
-          diff = dataset[pt][dim] - centroids[centroid * DIM + dim];
+          double data_coord = dataset[pt][dim];
+          double centroid_coord = centroids[centroid * DIM + dim];
+          diff = data_coord - centroid_coord;
           dist += diff * diff;
         }
 
@@ -148,10 +162,45 @@ int main(int argc, char **argv) {
       clusterings[pt - my_first_pt] = nearest_ctr_idx;
     }
 
+    // Update cluster means (skipping this after final clustering assignment)
+    if (niters != KMEANSITERS - 1){
+      int loc_per_ctr_cardinalities[KMEANS];
+      int gl_per_ctr_cardinalities[KMEANS];
+      // Our local per-dim sums are zero-initialized, so any centroid dim with no
+      // associated points will have a global mean of 0. Empty clusters
+      // "re-initialize" at (0, ..., 0) by default
+      double *loc_per_dim_sums = (double *)calloc(KMEANS * DIM, sizeof(double));
+      double *weighted_means = (double *)calloc(KMEANS * DIM, sizeof(double));
 
+      // Get local cardinalities for each clustering, and sums per dimension
+      for (int pt = my_first_pt; pt <= my_last_pt; pt++){
+        int loc_idx = pt - my_first_pt;
+        // Increment the cardinality for this point's center
+        int associated_ctr = clusterings[pt - my_first_pt];
+        loc_per_ctr_cardinalities[associated_ctr]++;
+        for (int dim = 0; dim < DIM; dim++){
+          int ctr_start_idx = associated_ctr * DIM;
+          loc_per_dim_sums[ctr_start_idx + dim] += dataset[pt][dim];
+        }
+      }
 
-    // Update cluster means
-    // TODO: if centroid has no nearest points, then re-initialize to (0, 0)
+      // Get global cardinalities
+      MPI_Allreduce(&loc_per_ctr_cardinalities, &gl_per_ctr_cardinalities, KMEANS, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+      // calculate the local weighted mean for each dimension of each centroid
+      for (int ctr = 0; ctr < KMEANS; ctr++){
+        for (int dim = 0; dim < DIM; dim++){
+          int ctr_start_idx = ctr * DIM;
+          weighted_means[ctr_start_idx + dim] = loc_per_dim_sums[ctr_start_idx + dim] / gl_per_ctr_cardinalities[ctr];
+        }
+      }
+
+      // calculate new centroids by summing weighted means
+      MPI_Allreduce(weighted_means, centroids, KMEANS * DIM, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+      free(loc_per_dim_sums);
+      free(weighted_means);
+    }
     niters++;
   }
 
