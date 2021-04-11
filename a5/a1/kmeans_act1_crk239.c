@@ -129,13 +129,13 @@ int main(int argc, char **argv) {
       int nearest_ctr_idx = 0;
       double nearest_ctr_distance = DBL_MAX;
       for (int centroid = 0; centroid < KMEANS; centroid++ ){
-        // Calculate distance to each center, keeping only the clustering of the minimum distance
-        // NOTE: This implementation does not require us to quantify loss, so I'm
-        // using squared euclidean distance here for runtime efficiency.
-        double dist, tmp;
+        // NOTE: This implementation does not require us to quantify total loss, so we
+        // can we can calculate distance to each center using squared euclidean
+        // distance for runtime efficiency, and we can keep only the resulting clustering
+        double diff, dist;
         for (int dim = 0; dim < DIM; dim++) {
-          tmp = dataset[pt][dim] - centroids[centroid * DIM + dim];
-          dist += tmp * tmp;
+          diff = dataset[pt][dim] - centroids[centroid * DIM + dim];
+          dist += diff * diff;
         }
 
         if (dist < nearest_ctr_distance) {
