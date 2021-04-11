@@ -116,7 +116,9 @@ int main(int argc, char **argv) {
   for (int i=0; i<KMEANS; i++)
   {
     for (int j=0; j<DIM; j++){
-      centroids[i] = dataset[i][j];
+      // printf("r: %d, ctr: %d, dim: %d, data: %f\t", my_rank, i, j, dataset[i][j]);
+      // if(j != 0){ printf("\n");}
+      centroids[i*DIM + j] = dataset[i][j];
     }
   }
 
