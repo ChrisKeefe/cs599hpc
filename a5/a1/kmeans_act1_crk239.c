@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-
+#include <float.h>
 
 
 #define KMEANSITERS 10
@@ -90,6 +90,8 @@ int main(int argc, char **argv) {
   
   //Write code here
   int niters = 0;
+
+  // Calculate per-rank data ranges
   int first_points[nprocs];
   int my_first_pt, my_last_pt;
 
@@ -104,26 +106,54 @@ int main(int argc, char **argv) {
   MPI_Bcast(&first_points, nprocs, MPI_INT, 0, MPI_COMM_WORLD);
   my_first_pt = first_points[my_rank];
   my_last_pt = (my_rank + 1 == nprocs) ? N - 1 : first_points[my_rank + 1] - 1;
+  int num_pts = my_last_pt - my_first_pt + 1;
+  // cluster-center labels for each point "owned" by this rank:
+  int clusterings[num_pts];
 
-  // Generate initial centroids
-  double **centroids=(double**)malloc(sizeof(double*)*KMEANS);
+  // Generate initial centroids in a 1d array. Access individual points by
+  // iterating once per DIM over a stride of DIM
+  double *centroids=(double*)malloc(sizeof(double*) * KMEANS * DIM);
   for (int i=0; i<KMEANS; i++)
   {
-    centroids[i]=(double*)malloc(sizeof(double)*DIM);
     for (int j=0; j<DIM; j++){
-      centroids[i][j] = dataset[i][j];
+      centroids[i] = dataset[i][j];
     }
   }
 
-  // TODO:
-  // Check for "convergence"
+  // Check for "convergence" (using fixed number of iterations per spec)
   while (niters < KMEANSITERS){
-    // printf("HELLO HEIDI!\n");
+
     // Assign points to nearest centroid
+    int pt;
+    for (pt = my_first_pt; pt <= my_last_pt; pt++){
+      int nearest_ctr_idx = 0;
+      double nearest_ctr_distance = DBL_MAX;
+      for (int centroid = 0; centroid < KMEANS; centroid++ ){
+        // Calculate distance to each center, keeping only the clustering of the minimum distance
+        // NOTE: This implementation does not require us to quantify loss, so I'm
+        // using squared euclidean distance here for runtime efficiency.
+        double dist, tmp;
+        for (int dim = 0; dim < DIM; dim++) {
+          tmp = dataset[pt][dim] - centroids[centroid * DIM + dim];
+          dist += tmp * tmp;
+        }
+
+        if (dist < nearest_ctr_distance) {
+          nearest_ctr_idx = centroid; 
+          nearest_ctr_distance = dist;
+        }
+      }
+      clusterings[pt - my_first_pt] = nearest_ctr_idx;
+    }
+
+
+
     // Update cluster means
     // TODO: if centroid has no nearest points, then re-initialize to (0, 0)
     niters++;
   }
+
+  free(centroids);
 
   //free dataset
   for (int i=0; i<N; i++)
@@ -132,11 +162,6 @@ int main(int argc, char **argv) {
   }
   free(dataset);
 
-  // free centroids
-  for (int i=0; i<KMEANS; i++){
-    free(centroids[i]);
-  }
-  free(centroids);
 
   MPI_Finalize();
   return 0;
