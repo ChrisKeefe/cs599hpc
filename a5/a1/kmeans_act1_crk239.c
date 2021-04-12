@@ -89,6 +89,7 @@ int main(int argc, char **argv) {
 
   
   //Write code here
+  double start_time = MPI_Wtime();
   int niters = 0;
 
   // Calculate per-rank data ranges
@@ -210,6 +211,14 @@ int main(int argc, char **argv) {
       free(weighted_means);
     }
     niters++;
+  }
+
+  double end_time = MPI_Wtime();
+  double total_elapsed_time = end_time - start_time;
+  double global_tot_elapsed;
+  MPI_Reduce(&total_elapsed_time, &global_tot_elapsed, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+  if (my_rank == 0){
+    printf("Total time: %f\n", global_tot_elapsed);
   }
 
   free(centroids);
