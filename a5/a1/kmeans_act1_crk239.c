@@ -205,7 +205,16 @@ int main(int argc, char **argv) {
       for (int ctr = 0; ctr < KMEANS; ctr++){
         for (int dim = 0; dim < DIM; dim++){
           int ctr_start_idx = ctr * DIM;
-          weighted_means[ctr_start_idx + dim] = loc_per_dim_sums[ctr_start_idx + dim] / gl_per_ctr_cardinalities[ctr];
+          double my_sum, my_cardinality, w_mean;
+          my_sum = loc_per_dim_sums[ctr_start_idx + dim];
+          my_cardinality = gl_per_ctr_cardinalities[ctr];
+          // zero divided by zero -> NaN, so:
+          if(my_cardinality != 0){
+            w_mean = my_sum / my_cardinality;
+          } else {
+            w_mean = 0.0;
+          }
+          weighted_means[ctr_start_idx + dim] = w_mean;
         }
       }
 
