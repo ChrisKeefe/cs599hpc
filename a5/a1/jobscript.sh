@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=cs599-spr21
-#SBATCH --job-name=range3           # In practice, this is superseded from the CLI
-#SBATCH --time=5:00 	            # 5 min
+#SBATCH --job-name=kmeans           # In practice, this is superseded from the CLI
+#SBATCH --time=2:00 	            # 2 min
 #SBATCH --mem=0                     # We are exclusive: 0 -> use all available mem
 #SBATCH --cpus-per-task=1
 #SBATCH --exclusive
@@ -10,9 +10,7 @@
 
 module load openmpi
 
-# TODO: bump N up
-# N=5159737
-N=1000
+N=5159737
 DIM=2
 
 srun ${PREFIX}/a${ASSIGN}/a${ACTIVITY}/${OUTFILE} ${N} ${DIM} ${K} iono_57min_5.16Mpts_2D.txt
