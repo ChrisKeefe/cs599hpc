@@ -89,6 +89,7 @@ int main(int argc, char **argv) {
 
   
   //Write code here
+  double distance_time, centroid_time, iter_start, distance_end, cent_end, end_time;
   double start_time = MPI_Wtime();
   int niters = 0;
 
@@ -139,6 +140,8 @@ int main(int argc, char **argv) {
       }
     }
 
+    iter_start = MPI_Wtime();
+
     // Assign points to nearest centroid
     int pt;
     for (pt = my_first_pt; pt <= my_last_pt; pt++){
@@ -166,6 +169,8 @@ int main(int argc, char **argv) {
       }
       clusterings[pt - my_first_pt] = nearest_ctr_idx;
     }
+
+    distance_end = MPI_Wtime();
 
     // Update cluster means (skipping this after final clustering assignment)
     if (niters != KMEANSITERS - 1){
@@ -211,14 +216,19 @@ int main(int argc, char **argv) {
       free(weighted_means);
     }
     niters++;
+    cent_end = MPI_Wtime();
+    distance_time += (distance_end - iter_start);
+    centroid_time += (cent_end - distance_end);
   }
+  end_time = MPI_Wtime();
 
-  double end_time = MPI_Wtime();
-  double total_elapsed_time = end_time - start_time;
-  double global_tot_elapsed;
-  MPI_Reduce(&total_elapsed_time, &global_tot_elapsed, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+  double tot_elapsed_time, gl_tot_elapsed, gl_tot_dist, gl_tot_centr;
+  tot_elapsed_time = end_time - start_time;
+  MPI_Reduce(&tot_elapsed_time, &gl_tot_elapsed, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+  MPI_Reduce(&distance_time, &gl_tot_dist, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+  MPI_Reduce(&centroid_time, &gl_tot_centr, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
   if (my_rank == 0){
-    printf("Total time: %f\n", global_tot_elapsed);
+    printf("Total time: %f, distances: %f, centroids: %f\n", gl_tot_elapsed, gl_tot_dist, gl_tot_centr);
   }
 
   free(centroids);
