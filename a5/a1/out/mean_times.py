@@ -1,69 +1,60 @@
 from statistics import mean
 num_iterations = 3
-num_processor_counts = 5
-error_offset = 0
+num_processor_counts = ['1', '4', '8', '12', '16', '20']
+num_k = ['2', '25', '50', '100']
 write_lines = []
 sums = []
+
+# Build up values dict for population
+vals = {}
+for p in num_processor_counts:
+    vals.update({p:{}})
+    for k in num_k:
+        vals[p].update({k: {}})
+        vals[p][k].update({'distance': 0})
+        vals[p][k].update({'centroid': 0})
+        vals[p][k].update({'total': 0})
 
 # Read in timing data
 with open("./timings.txt", "r") as fp:
     lines = fp.readlines()
-    vals = []
+
     for line in lines:
-        flt = 0.0
+        if line[0] == 'k':
+            short = line[6:].strip()
+            nprocs, k = short.split(sep='_')
+
         try:
             spl = line.split()
             for word in range(len(spl)):
                 spl[word] = spl[word].rstrip(',')
-            build = float(spl[3])
-            query = float(spl[5])
-            el = float(spl[-1])
-            vals.append((build, query, el))
+            distance = float(spl[4])
+            centroid = float(spl[-1])
+            total = float(spl[2])
+            vals[nprocs][k]['distance'] += distance
+            vals[nprocs][k]['centroid'] += centroid
+            vals[nprocs][k]['total'] += total
         except ValueError:
             pass
         except IndexError:
             pass
 
-    for i, group_st in enumerate(range(0, len(vals), num_iterations)):
-        group_ctr = 0
-        if group_st == 0:
-            nprocs = 1
-        else:
-            nprocs = 4 * i
-        group_end = group_st + num_iterations
-        grouples = vals[group_st: group_end]
-        build_mean = 0
-        que_mean = 0
-        tot_mean = 0
-        for i in range(num_iterations):
-            build_mean += grouples[i][0]
-            que_mean += grouples[i][1]
-            tot_mean += grouples[i][2]
-        build_mean /= num_iterations
-        que_mean /= num_iterations
-        tot_mean /= num_iterations
-        write_lines.append(
-            f"NPROCS = {nprocs}, "
-            f"build = {round(build_mean, 4)}, "
-            f"query = {round(que_mean, 4)}, "
-            f"total = {round(tot_mean, 4)}, ")
-        print(write_lines)
-
-# Read in global sums
-with open("./global_sums.txt", "r") as sum_fp:
-    lines = sum_fp.readlines()
-    sums = []
-    for group in range(num_processor_counts):
-        try:
-            sums.append(int(lines[group * (num_iterations + 1) + 1].split()[-1]))
-        except ValueError as err:
-            pass
-    print(sums)
+    for p in num_processor_counts:
+        for k in num_k:
+            d_mean = vals[p][k]['distance'] / num_iterations
+            c_mean = vals[p][k]['centroid'] / num_iterations
+            tot_mean = vals[p][k]['total'] / num_iterations
+            write_lines.append(
+                f"NPROCS = {p}\t"
+                f"K = {k}\t"
+                f"dist = {round(d_mean, 4)}\t"
+                f"centroid = {round(c_mean, 4)}\t"
+                f"total = {round(tot_mean, 4)}")
 
 # Write to a summary document
 with open("./summary.txt", "w") as w_fp:
-    for (timing, sum) in zip(write_lines, sums):
-        w_fp.write(timing)
-        w_fp.write(f"global sum: {str(sum)}\n\n")
+    for timing in write_lines:
+        w_fp.write(timing + "\n")
+        # w_fp.write(f"global sum: {str(sum)}\n\n")
 
 print("Wrote summary.txt")
