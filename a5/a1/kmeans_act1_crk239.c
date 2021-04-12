@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
   my_last_pt = (my_rank + 1 == nprocs) ? N - 1 : first_pts[my_rank + 1] - 1;
   num_pts = my_last_pt - my_first_pt + 1;
   // cluster-center labels for each point "owned" by this rank:
-  int clusterings[num_pts];
+  int *clusterings = (int *)calloc(num_pts, sizeof(int));
 
   // Generate initial centroids in a 1d array. Access individual points by
   // iterating once per DIM over a stride of DIM
@@ -209,6 +209,7 @@ int main(int argc, char **argv) {
   }
 
   free(centroids);
+  free(clusterings);
 
   //free dataset
   for (int i=0; i<N; i++)
