@@ -125,9 +125,9 @@ int main(int argc, char **argv) {
 
   // Check for "convergence" (using fixed number of iterations per spec)
   while (niters < KMEANSITERS){
-    // report cluster centers
-    // remove my_rank condition to confirm centroids identical
-    // remove niters condition to track centroids over iterations
+    // report cluster centers:
+    // (remove my_rank condition to confirm centroids identical)
+    // (remove niters condition to track centroids over iterations)
     if (my_rank == 0){
       if (niters == KMEANSITERS - 1){
         printf("\nCentroids at iteration %d r%d\n", niters, my_rank);
