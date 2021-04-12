@@ -13,4 +13,4 @@ module load openmpi
 N=5159737
 DIM=2
 
-srun ${PREFIX}/a${ASSIGN}/a${ACTIVITY}/${OUTFILE} ${N} ${DIM} ${K} iono_57min_5.16Mpts_2D.txt
+srun ${PREFIX}/a${ASSIGN}/a${ACTIVITY}/${OUTFILE} ${N} ${DIM} ${K} ${PREFIX}/$a{ASSIGN}/iono_57min_5.16Mpts_2D.txt

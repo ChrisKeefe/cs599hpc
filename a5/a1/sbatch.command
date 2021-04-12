@@ -16,7 +16,7 @@ for ITER in 1 2 3 ; do
     for NPROCS in 1 4 8 12 16 20; do
 	for K in 2 25 50 100; do
 	    # If this blows up, start troubleshooting by checking that K exports successfully to the jobscript
-	    export K
+	    export K=${K}
             NTPN=$(( NPROCS/NNODES ))
             sbatch --job-name=${OUTFILE}${NPROCS}_${K}_${ITER} --ntasks=${NPROCS} --nodes=${NNODES} --ntasks-per-node=${NTPN} --output=out/${OUTFILE}${NPROCS}_${K}_${ITER}.out jobscript.sh
 	done
