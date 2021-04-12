@@ -92,21 +92,22 @@ int main(int argc, char **argv) {
   int niters = 0;
 
   // Calculate per-rank data ranges
-  int first_points[nprocs];
+  int first_pts[nprocs];
   int my_first_pt, my_last_pt;
+  long int num_pts;
 
   if (my_rank == 0){
-    int numPoints = N / nprocs;
+    num_pts = N / nprocs;
 
     for (int i = 0; i < nprocs; i++){
-      first_points[i] = i * numPoints;
+      first_pts[i] = i * num_pts;
     }
   }
 
-  MPI_Bcast(&first_points, nprocs, MPI_INT, 0, MPI_COMM_WORLD);
-  my_first_pt = first_points[my_rank];
-  my_last_pt = (my_rank + 1 == nprocs) ? N - 1 : first_points[my_rank + 1] - 1;
-  int num_pts = my_last_pt - my_first_pt + 1;
+  MPI_Bcast(&first_pts, nprocs, MPI_INT, 0, MPI_COMM_WORLD);
+  my_first_pt = first_pts[my_rank];
+  my_last_pt = (my_rank + 1 == nprocs) ? N - 1 : first_pts[my_rank + 1] - 1;
+  num_pts = my_last_pt - my_first_pt + 1;
   // cluster-center labels for each point "owned" by this rank:
   int clusterings[num_pts];
 
