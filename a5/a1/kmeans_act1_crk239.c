@@ -123,13 +123,17 @@ int main(int argc, char **argv) {
 
   // Check for "convergence" (using fixed number of iterations per spec)
   while (niters < KMEANSITERS){
-    // report cluster centers - remove my_rank condition to confirm centroids identical
+    // report cluster centers
+    // remove my_rank condition to confirm centroids identical
+    // remove niters condition to track centroids over iterations
     if (my_rank == 0){
-      printf("\nCentroids at iteration %d r%d\n", niters, my_rank);
-      for (int ctr_dim = 0; ctr_dim < KMEANS * DIM; ctr_dim++){
-        printf("%f\t", centroids[ctr_dim]);
-        if (ctr_dim % DIM - 1 == 0){
-          printf("\n");
+      if (niters == KMEANSITERS - 1){
+        printf("\nCentroids at iteration %d r%d\n", niters, my_rank);
+        for (int ctr_dim = 0; ctr_dim < KMEANS * DIM; ctr_dim++){
+          printf("%f\t", centroids[ctr_dim]);
+          if (ctr_dim % DIM - 1 == 0){
+            printf("\n");
+          }
         }
       }
     }
