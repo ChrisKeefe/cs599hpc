@@ -138,7 +138,6 @@ int main(int argc, char **argv) {
     for (pt = my_first_pt; pt <= my_last_pt; pt++){
       int nearest_ctr_idx = 0;
       double nearest_ctr_distance = DBL_MAX;
-      // printf("nearest center dist: %f, idx: %d\n", nearest_ctr_distance, nearest_ctr_idx);
 
       // NOTE: This implementation does not require us to quantify total loss, so we
       // can we can calculate distance to each center using squared euclidean
@@ -164,8 +163,12 @@ int main(int argc, char **argv) {
 
     // Update cluster means (skipping this after final clustering assignment)
     if (niters != KMEANSITERS - 1){
-      int loc_per_ctr_cardinalities[KMEANS];
-      int gl_per_ctr_cardinalities[KMEANS];
+      long int loc_per_ctr_cardinalities[KMEANS];
+      long int gl_per_ctr_cardinalities[KMEANS];
+      for (int i = 0; i < KMEANS; i++){
+        loc_per_ctr_cardinalities[i] = 0;
+        gl_per_ctr_cardinalities[i] = 0;
+      }
       // Our local per-dim sums are zero-initialized, so any centroid dim with no
       // associated points will have a global mean of 0. Empty clusters
       // "re-initialize" at (0, ..., 0) by default
@@ -185,7 +188,7 @@ int main(int argc, char **argv) {
       }
 
       // Get global cardinalities
-      MPI_Allreduce(&loc_per_ctr_cardinalities, &gl_per_ctr_cardinalities, KMEANS, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+      MPI_Allreduce(&loc_per_ctr_cardinalities, &gl_per_ctr_cardinalities, KMEANS, MPI_LONG, MPI_SUM, MPI_COMM_WORLD);
 
       // calculate the local weighted mean for each dimension of each centroid
       for (int ctr = 0; ctr < KMEANS; ctr++){
