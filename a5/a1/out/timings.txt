@@ -1,0 +1,96 @@
+kmeans1_2
+Total time: 0.505048, distances: 0.343153, centroids: 0.161857
+Total time: 0.507059, distances: 0.344613, centroids: 0.162411
+Total time: 0.534537, distances: 0.372293, centroids: 0.162193
+kmeans1_25
+Total time: 3.191713, distances: 3.013314, centroids: 0.178338
+Total time: 3.191763, distances: 3.017929, centroids: 0.173766
+Total time: 3.192085, distances: 3.011821, centroids: 0.180199
+kmeans1_50
+Total time: 6.386249, distances: 6.217262, centroids: 0.168885
+Total time: 6.357074, distances: 6.178540, centroids: 0.178434
+Total time: 6.406475, distances: 6.237066, centroids: 0.169305
+kmeans1_100
+Total time: 12.211506, distances: 12.002840, centroids: 0.208521
+Total time: 12.210172, distances: 12.003027, centroids: 0.207001
+Total time: 12.212216, distances: 12.002367, centroids: 0.209704
+kmeans4_2
+Total time: 0.130721, distances: 0.086943, centroids: 0.045520
+Total time: 0.155133, distances: 0.111911, centroids: 0.069901
+Total time: 0.157234, distances: 0.113948, centroids: 0.072553
+kmeans4_25
+Total time: 0.814047, distances: 0.773079, centroids: 0.070666
+Total time: 0.816151, distances: 0.774640, centroids: 0.070049
+Total time: 0.813632, distances: 0.772127, centroids: 0.068092
+kmeans4_50
+Total time: 1.606962, distances: 1.565970, centroids: 0.070063
+Total time: 1.608526, distances: 1.567293, centroids: 0.078592
+Total time: 1.608313, distances: 1.567329, centroids: 0.071062
+kmeans4_100
+Total time: 3.036921, distances: 2.992056, centroids: 0.057815
+Total time: 3.060251, distances: 3.006111, centroids: 0.079505
+Total time: 3.061008, distances: 3.007792, centroids: 0.079272
+kmeans8_2
+Total time: 0.088163, distances: 0.064693, centroids: 0.044692
+Total time: 0.072632, distances: 0.048930, centroids: 0.034458
+Total time: 0.084192, distances: 0.060847, centroids: 0.044877
+kmeans8_25
+Total time: 0.401610, distances: 0.379988, centroids: 0.031752
+Total time: 0.416139, distances: 0.393761, centroids: 0.046133
+Total time: 0.412046, distances: 0.390537, centroids: 0.040486
+kmeans8_50
+Total time: 0.807960, distances: 0.786654, centroids: 0.040845
+Total time: 0.792428, distances: 0.771067, centroids: 0.025814
+Total time: 0.801673, distances: 0.779580, centroids: 0.032841
+kmeans8_100
+Total time: 1.521524, distances: 1.499856, centroids: 0.031724
+Total time: 1.539714, distances: 1.501402, centroids: 0.054048
+Total time: 1.553225, distances: 1.518553, centroids: 0.066673
+kmeans12_2
+Total time: 0.056896, distances: 0.038720, centroids: 0.029417
+Total time: 0.049899, distances: 0.030770, centroids: 0.023761
+Total time: 0.051774, distances: 0.033642, centroids: 0.024805
+kmeans12_25
+Total time: 0.274283, distances: 0.259069, centroids: 0.027758
+Total time: 0.267428, distances: 0.252193, centroids: 0.020954
+Total time: 0.278168, distances: 0.262214, centroids: 0.030756
+kmeans12_50
+Total time: 0.529581, distances: 0.514571, centroids: 0.018736
+Total time: 0.529655, distances: 0.514693, centroids: 0.019258
+Total time: 0.535382, distances: 0.518788, centroids: 0.023838
+kmeans12_100
+Total time: 1.010125, distances: 0.994975, centroids: 0.019504
+Total time: 1.028513, distances: 1.013038, centroids: 0.032718
+Total time: 1.020368, distances: 1.003895, centroids: 0.028856
+kmeans16_2
+Total time: 0.050145, distances: 0.036159, centroids: 0.030401
+Total time: 0.046253, distances: 0.032461, centroids: 0.026444
+Total time: 0.044285, distances: 0.030075, centroids: 0.024528
+kmeans16_25
+Total time: 0.207008, distances: 0.195171, centroids: 0.021783
+Total time: 0.199892, distances: 0.188072, centroids: 0.014354
+Total time: 0.206773, distances: 0.194580, centroids: 0.021636
+kmeans16_50
+Total time: 0.405411, distances: 0.393079, centroids: 0.022128
+Total time: 0.408297, distances: 0.396168, centroids: 0.025290
+Total time: 0.405393, distances: 0.393450, centroids: 0.022092
+kmeans16_100
+Total time: 0.769449, distances: 0.753998, centroids: 0.022419
+Total time: 0.758352, distances: 0.746372, centroids: 0.014964
+Total time: 0.783245, distances: 0.751796, centroids: 0.038679
+kmeans20_2
+Total time: 0.036684, distances: 0.024168, centroids: 0.020590
+Total time: 0.037956, distances: 0.024364, centroids: 0.021856
+Total time: 0.037057, distances: 0.023071, centroids: 0.020919
+kmeans20_25
+Total time: 0.177039, distances: 0.155248, centroids: 0.028886
+Total time: 0.168050, distances: 0.156611, centroids: 0.019831
+Total time: 0.167622, distances: 0.156722, centroids: 0.019458
+kmeans20_50
+Total time: 0.324694, distances: 0.314376, centroids: 0.018295
+Total time: 0.330350, distances: 0.315582, centroids: 0.023866
+Total time: 0.331539, distances: 0.315313, centroids: 0.024785
+kmeans20_100
+Total time: 0.627576, distances: 0.602286, centroids: 0.032860
+Total time: 0.622870, distances: 0.608321, centroids: 0.023580
+Total time: 0.607515, distances: 0.597186, centroids: 0.012989
