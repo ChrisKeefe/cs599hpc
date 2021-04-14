@@ -1,0 +1,80 @@
+kmeans24_2
+Total time: 0.057947, distances: 0.020557, centroids: 0.042161
+Total time: 0.050476, distances: 0.021285, centroids: 0.035292
+Total time: 0.051533, distances: 0.020342, centroids: 0.022945
+kmeans24_25
+Total time: 0.160114, distances: 0.135340, centroids: 0.023036
+Total time: 0.151544, distances: 0.130086, centroids: 0.021526
+Total time: 0.157580, distances: 0.133313, centroids: 0.021461
+kmeans24_50
+Total time: 0.301122, distances: 0.262488, centroids: 0.029642
+Total time: 0.292742, distances: 0.265365, centroids: 0.023678
+Total time: 0.290620, distances: 0.265536, centroids: 0.024729
+kmeans24_100
+Total time: 0.545062, distances: 0.506620, centroids: 0.037848
+Total time: 0.533884, distances: 0.505516, centroids: 0.024078
+Total time: 0.536422, distances: 0.503667, centroids: 0.038447
+kmeans28_2
+Total time: 0.051028, distances: 0.024588, centroids: 0.023174
+Total time: 0.052081, distances: 0.020712, centroids: 0.032752
+Total time: 0.043149, distances: 0.024111, centroids: 0.028069
+kmeans28_25
+Total time: 0.142734, distances: 0.115249, centroids: 0.020201
+Total time: 0.136076, distances: 0.113505, centroids: 0.025964
+Total time: 0.142649, distances: 0.112470, centroids: 0.033278
+kmeans28_50
+Total time: 0.242531, distances: 0.226671, centroids: 0.017444
+Total time: 0.246870, distances: 0.228064, centroids: 0.024050
+Total time: 0.257327, distances: 0.225508, centroids: 0.015369
+kmeans28_100
+Total time: 0.461973, distances: 0.431893, centroids: 0.033441
+Total time: 0.449812, distances: 0.430945, centroids: 0.022120
+Total time: 0.453022, distances: 0.429279, centroids: 0.025079
+kmeans32_2
+Total time: 0.034363, distances: 0.022220, centroids: 0.021726
+Total time: 0.026695, distances: 0.016072, centroids: 0.014185
+Total time: 0.026045, distances: 0.015867, centroids: 0.015654
+kmeans32_25
+Total time: 0.116497, distances: 0.099320, centroids: 0.022206
+Total time: 0.112622, distances: 0.098154, centroids: 0.018615
+Total time: 0.117544, distances: 0.103672, centroids: 0.023742
+kmeans32_50
+Total time: 0.212646, distances: 0.200205, centroids: 0.020201
+Total time: 0.208149, distances: 0.197398, centroids: 0.015089
+Total time: 0.212929, distances: 0.200628, centroids: 0.018303
+kmeans32_100
+Total time: 0.384759, distances: 0.373641, centroids: 0.011474
+Total time: 0.399771, distances: 0.378003, centroids: 0.026086
+Total time: 0.392257, distances: 0.379274, centroids: 0.019426
+kmeans36_2
+Total time: 0.042993, distances: 0.013667, centroids: 0.031370
+Total time: 0.039511, distances: 0.015105, centroids: 0.016562
+Total time: 0.035650, distances: 0.015810, centroids: 0.018170
+kmeans36_25
+Total time: 0.110850, distances: 0.088436, centroids: 0.022515
+Total time: 0.108431, distances: 0.087135, centroids: 0.018865
+Total time: 0.112389, distances: 0.086779, centroids: 0.023433
+kmeans36_50
+Total time: 0.196716, distances: 0.176704, centroids: 0.021140
+Total time: 0.194949, distances: 0.174266, centroids: 0.020439
+Total time: 0.193865, distances: 0.177669, centroids: 0.020478
+kmeans36_100
+Total time: 0.369363, distances: 0.335690, centroids: 0.031685
+Total time: 0.350453, distances: 0.332252, centroids: 0.015397
+Total time: 0.354282, distances: 0.336111, centroids: 0.015208
+kmeans40_2
+Total time: 0.054698, distances: 0.014248, centroids: 0.031242
+Total time: 0.041959, distances: 0.012503, centroids: 0.028775
+Total time: 0.052497, distances: 0.011364, centroids: 0.041929
+kmeans40_25
+Total time: 0.105021, distances: 0.075814, centroids: 0.020129
+Total time: 0.099035, distances: 0.079921, centroids: 0.020252
+Total time: 0.102440, distances: 0.078891, centroids: 0.025260
+kmeans40_50
+Total time: 0.174779, distances: 0.155616, centroids: 0.015664
+Total time: 0.194525, distances: 0.158746, centroids: 0.025190
+Total time: 0.180033, distances: 0.156341, centroids: 0.024906
+kmeans40_100
+Total time: 0.323332, distances: 0.302361, centroids: 0.019807
+Total time: 0.323360, distances: 0.302705, centroids: 0.021517
+Total time: 0.324304, distances: 0.302116, centroids: 0.022980
