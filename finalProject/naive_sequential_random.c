@@ -4,6 +4,7 @@
 
 #define N 2048
 
+// Allocate Arrays
 int arrA[N][N];
 int arrB[N][N];
 int arrC[N][N];
