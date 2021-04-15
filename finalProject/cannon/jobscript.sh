@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=cs599-spr21
 #SBATCH --job-name=cannon
-#SBATCH --time=5:00 	            # 2 min
+#SBATCH --time=1:00 	            # 1 min
 #SBATCH --mem=16G
 #SBATCH --cpus-per-task=1
 #SBATCH --exclusive
