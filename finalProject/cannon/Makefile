@@ -1,8 +1,8 @@
 CC = gcc
 # CFLAGS = ""
 LFLAGS = -lm
-FIXED = naive_sequential_fixed_vals
-RAND = naive_sequential_random
+FIXED = cannon_fixed_vals
+RAND = cannon_random
 
 # mpicc kmeans.c -lm -o kmeans
 # mpirun -np 4 -hostfile ../myhostfile.txt ./kmeans 5159737 2 2 ../iono_57min_5.16Mpts_2D.txt
@@ -10,19 +10,19 @@ RAND = naive_sequential_random
 .phony = clean run test time fixed rand
 
 fixed:
-	${CC} ${CFLAGS} ${LFLAGS} ${FIXED}.c -o naive_fixed
+	${CC} ${CFLAGS} ${LFLAGS} ${FIXED}.c -o ${FIXED}
 
 rand:
-	${CC} ${CFLAGS} ${LFLAGS} ${RAND}.c -o naive_rand
+	${CC} ${CFLAGS} ${LFLAGS} ${RAND}.c -o ${RAND}
 
 run: rand
-	./naive_rand
+	./${RAND}
 
 test: fixed
-	./naive_fixed
+	./${FIXED}
 
 time: naive_sequential_fixed_vals
-	time ./naive_fixed
+	time ./${FIXED}
 
 clean:
-	rm naive_fixed
+	rm ${FIXED} ${RAND}
