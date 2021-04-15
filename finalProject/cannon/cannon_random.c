@@ -13,8 +13,8 @@ int N;
 int DIAGNOSTICS;
 
 // Forward declarations
-void print_mtrx_shared_int(int ** matrix, char *name);
-void print_mtrx_shared_long(unsigned long long int ** matrix, char *name);
+void print_mtrx_shared_int(int ** matrix, const char *name);
+void print_mtrx_shared_long(unsigned long long int ** matrix, const char *name);
 void naive_multiply(int **arrA, int **arrB, unsigned long long int **arrC);
 
 // TODO: Take N as CL param
@@ -110,7 +110,7 @@ void naive_multiply(int **arrA, int **arrB, unsigned long long int **arrC){
 
 // print resulting matrix
 // TODO: this should be CL flag toggleable
-void print_mtrx_shared_int(int ** matrix, char *name){
+void print_mtrx_shared_int(int ** matrix, const char *name){
   int i, k;
   printf("Matrix %s\n", name);
   for (i = 0; i < N; i++){
@@ -122,7 +122,7 @@ void print_mtrx_shared_int(int ** matrix, char *name){
   printf("\n");
 }
 
-void print_mtrx_shared_long(unsigned long long int ** matrix, char *name){
+void print_mtrx_shared_long(unsigned long long int ** matrix, const char *name){
   int i, k;
   printf("Matrix %s\n", name);
   for (i = 0; i < N; i++){
