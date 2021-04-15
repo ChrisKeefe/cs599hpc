@@ -29,7 +29,7 @@ with open("./timings.txt", "r") as fp:
             pass
 
     for p in num_processor_counts:
-        tot_mean = vals[p][k]['total'] / num_iterations
+        tot_mean = vals[p]['total'] / num_iterations
         write_lines.append(
             f"NPROCS = {p}\t"
             f"total = {round(tot_mean, 4)}")

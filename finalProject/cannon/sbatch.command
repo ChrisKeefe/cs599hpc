@@ -12,7 +12,7 @@ mpic++ ${PREFIX}/${ASSIGN}/${ACTIVITY}/${INFILE} -lm -O3 -o ${PREFIX}/${ASSIGN}/
 
 NNODES=1
 
-for ITER in 1 2 3 ; do
+for ITER in 0 1 2 3 4 5 6 7 8 9; do
     for NPROCS in 1; do
             NTPN=$(( NPROCS/NNODES ))
             sbatch --job-name=${OUTFILE}${NPROCS}_${ITER} --ntasks=${NPROCS} --nodes=${NNODES} --ntasks-per-node=${NTPN} --output=out/${OUTFILE}${NPROCS}_${ITER}.out jobscript.sh
