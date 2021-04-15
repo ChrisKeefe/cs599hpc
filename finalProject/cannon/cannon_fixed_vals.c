@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 
 #define N 4
 void naive_multiply(int **arrA, int **arrB, int **arrC);
@@ -33,6 +32,10 @@ int main(int argc, char *argv) {
 
   print_mtrx_shared_int(arrA, "A");
   print_mtrx_shared_int(arrB, "B");
+
+  // BEGIN CANNON CODE
+
+  
 
   naive_multiply(arrA, arrB, arrC);
 
