@@ -1,10 +1,9 @@
-CC = gcc
-MPICC = mpicc
+CC = mpicc
 # CFLAGS = ""
 LFLAGS = -lm
 FIXED = cannon_fixed_vals
 RAND = cannon_random
-NP = 1
+NP = 4
 HOST = ../myhostfile.txt
 
 # mpicc kmeans.c -lm -o kmeans
@@ -16,13 +15,13 @@ fixed:
 	${CC} ${CFLAGS} ${LFLAGS} ${FIXED}.c -o ${FIXED}
 
 rand:
-	${MPICC} ${CFLAGS} ${LFLAGS} ${RAND}.c -o ${RAND}
+	${CC} ${CFLAGS} ${LFLAGS} ${RAND}.c -o ${RAND}
 
 run: rand
 	mpirun -np ${NP} -hostfile ${HOST} ./${RAND} 4 1
 
 test: fixed
-	./${FIXED}
+	mpirun -np ${NP} -hostfile ${HOST} ./${FIXED} 4 1 1
 
 time: naive_sequential_fixed_vals
 	time ./${FIXED}

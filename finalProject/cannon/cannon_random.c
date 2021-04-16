@@ -17,7 +17,6 @@ void print_mtrx_shared_int(int ** matrix, const char *name);
 void print_mtrx_shared_long(unsigned long long int ** matrix, const char *name);
 void naive_multiply(int **arrA, int **arrB, unsigned long long int **arrC);
 
-// TODO: Take N as CL param
 int main(int argc, char **argv) {
   int my_rank, nprocs;
   int i, j, k;
@@ -32,7 +31,6 @@ int main(int argc, char **argv) {
   MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
 
   //Process command-line arguments
-
   if (argc != 3) {
     fprintf(stderr,"Please provide the following args: N (matrix dimensionality), and a 1/0 diagnostic print flag.");
     MPI_Finalize();

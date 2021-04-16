@@ -1,63 +1,156 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+#include <mpi.h>
 
-#define N 4
-void naive_multiply(int **arrA, int **arrB, int **arrC);
-void print_mtrx_shared_int(int ** matrix, char *name);
+// declare global config variables
+int DIM;
+int DIAGNOSTICS;
+int BLOCKSIZE;
 
-int main(int argc, char *argv) {
-  int i, j, k;
-  // Allocate Arrays
-  int **arrA = (int **)malloc(sizeof(int *) * N);
-  int **arrB = (int **)malloc(sizeof(int *) * N);
-  int **arrC = (int **)malloc(sizeof(int *) * N);
+// forward declarations
+void naive_multiply(int **my_arrA, int **my_arrB, int **my_arrC);
+void print_chunk(int **arr, int localDIM);
+void print_dist_mat(int **arr, const char *name, int localDIM, int nprocs, int my_rank, MPI_Comm world);
 
-  for (int i=0; i<N; i++)
+int main(int argc, char **argv) {
+  int my_rank, nprocs, N, localN, localDIM, blockDIM, rowOffset, colOffset;
+  int myRow, myCol, localStartIdx, gridRowOffset, gridColOffset;
+  int i, j, k, tmp, print_rank;
+  double start_time, end_time;
+
+  // Initialize MPI
+  MPI_Init(&argc,&argv);
+  MPI_Comm_rank(MPI_COMM_WORLD,&my_rank);
+  MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
+
+  float nprocs_check = sqrt(nprocs);
+  if (nprocs_check != (int) nprocs_check)
   {
-    arrA[i]=(int*)malloc(sizeof(int) * N);
-    arrB[i]=(int*)malloc(sizeof(int) * N);
-    arrC[i]=(int*)malloc(sizeof(int) * N);
+    printf("\nCannon's algorithm requires a square number of processors.\n");
+    MPI_Finalize();
+    exit(0);
   }
 
-  // populate arrays
+  //Process command-line arguments
+  if (argc != 4) {
+    fprintf(stderr,"Please provide the following args: DIM (matrix dimensionality), the BLOCKSIZE at which component submatrices will be multiplied naively, and a 1/0 diagnostic print flag.");
+    MPI_Finalize();
+    exit(0);
+  }
+  // DIM is the length of one dimension of the square matrices being multiplied
+  sscanf(argv[1],"%d",&DIM);
+  // BLOCKSIZE is the side-length of the smallest unit of multiplication
+  // i.e. a cache-sized matrix which will be naively multiplied
+  sscanf(argv[2], "%d", &BLOCKSIZE);
+  sscanf(argv[3],"%d",&DIAGNOSTICS);
+
+  // TODO: test behavior with nprocs = 3, 4, 5
+
+  // Determine the dimensions of the data for each rank:
+  // The number of elements of the matrix
+  N = DIM * DIM;
+  // The number of elements of each rank's chunk of the matrix
+  localN = N / nprocs;
+  // The dimensionality of each rank's chunk of the matrix
+  localDIM = sqrt(localN);
+  // the number of blocks on one axis of the matrix
+  blockDIM = DIM / localDIM;
+
+  rowOffset = DIM;
+  colOffset = 1;
+  gridRowOffset = rowOffset * localDIM;
+  gridColOffset = colOffset * localDIM;
+
+  // coordinates of the rank in our matrix of processors
+  myRow = my_rank / blockDIM;
+  myCol = my_rank % blockDIM;
+
+  if (DIM < 1 || BLOCKSIZE < 1 || BLOCKSIZE > localDIM)
+  {
+    printf("\nDIM is invalid or BLOCKSIZE is invalid\n");
+    MPI_Finalize();
+    exit(0);
+  }
+
+  // Allocate Arrays
+  // pointer to local subsets of the data
+  int **my_arrA = (int **)malloc(sizeof(int *) * localDIM);
+  int **my_arrB = (int **)malloc(sizeof(int *) * localDIM);
+  int **my_arrC = (int **)malloc(sizeof(int *) * localDIM);
+
+  for (int i=0; i<localDIM; i++)
+  {
+    my_arrA[i]=(int*)malloc(sizeof(int) * localDIM);
+    my_arrB[i]=(int*)malloc(sizeof(int) * localDIM);
+    my_arrC[i]=(int*)malloc(sizeof(int) * localDIM);
+  }
+
+  // populate arrays in a distributed manner
   int a[16] = {1, 5, 3, 4, 2, 2, 3, 2, 5, 3, 3, 3, 1, 2, 3, 5};
   int b[16] = {2, 1, 1, 1, 2, 1, 2, 1, 2, 3, 3, 3, 1, 2, 2, 1};
-  for (i = 0; i < N; i++) {
-    for (j = 0; j < N; j++) {
-      arrA[i][j] = a[i*N + j];
-      arrB[i][j] = b[i*N + j];
-      arrC[i][j] = 0;
+  localStartIdx = myRow * gridRowOffset + myCol * gridColOffset;
+// printf("r %d startIdx %d\n", my_rank, localStartIdx);
+  for (i = 0; i < localDIM; i++) {
+    for (j = 0; j < localDIM; j++) {
+      tmp = localStartIdx + i * rowOffset + j * colOffset;
+      my_arrA[i][j] = a[tmp];
+      my_arrB[i][j] = b[tmp];
+      my_arrC[i][j] = 0;
     }
   }
 
-  print_mtrx_shared_int(arrA, "A");
-  print_mtrx_shared_int(arrB, "B");
-
+  // display matrix A by sequentially printing each block
+  print_dist_mat(my_arrA, "A", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
+  print_dist_mat(my_arrB, "B", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
   // BEGIN CANNON CODE
+  // TODO NEXT
+  // naive_multiply(my_arrA, my_arrB, my_arrC);
 
-  
+  // MPI_Barrier(MPI_COMM_WORLD);
+  // print_dist_mat(my_arrC, "C", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
 
-  naive_multiply(arrA, arrB, arrC);
+  for (int i = 0; i < localDIM; i++)
+  {
+    free(my_arrA[i]);
+    free(my_arrB[i]);
+    free(my_arrC[i]);
+  }
+  free(my_arrA);
+  free(my_arrB);
+  free(my_arrC);
 
-  print_mtrx_shared_int(arrC, "C");
-
-  exit(0);
+  MPI_Finalize();
+  return 0;
 }
+// END MAIN
 
 // perform naive matrix multiplication
-void naive_multiply(int **arrA, int **arrB, int **arrC){
-  for (int i = 0; i < N; i++)
-    for (int k = 0; k < N; k++)
-      for (int j = 0; j < N; j++)
-        arrC[i][j] += arrA[i][k] * arrB[k][j];
+void naive_multiply(int **my_arrA, int **my_arrB, int **my_arrC){
+  for (int i = 0; i < DIM; i++)
+    for (int k = 0; k < DIM; k++)
+      for (int j = 0; j < DIM; j++)
+        my_arrC[i][j] += my_arrA[i][k] * my_arrB[k][j];
 }
 
-void print_mtrx_shared_int(int ** matrix, char *name){
-  int i, k;
-  printf("Matrix %s\n", name);
-  for (i = 0; i < N; i++){
-    for (k = 0; k < N; k++){
-      printf("%-12d ", matrix[i][k]);
+void print_dist_mat(int **arr, const char *name, int localDIM, int nprocs, int my_rank, MPI_Comm world){
+  if(my_rank == 0) printf("\n### Matrix %s ###\n", name);
+  int print_rank = 0;
+  for (int i = 0; i < nprocs; i++){
+    if (my_rank == print_rank){
+      printf("Rank: %d\n", my_rank);
+      print_chunk(arr, localDIM);
+    }
+    print_rank++;
+    MPI_Barrier(world);
+  }
+}
+
+void print_chunk(int **arr, int localDIM){
+  for (int i = 0; i < localDIM; i++){
+    for (int k = 0; k < localDIM; k++){
+      printf("%-12d ", arr[i][k]);
     }
     printf("\n");
   }
