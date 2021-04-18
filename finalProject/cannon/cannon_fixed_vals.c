@@ -67,8 +67,6 @@ int main(int argc, char **argv) {
   // coordinates of the rank in our matrix of processors
   myProcRow = my_rank / blockDIM;
   myProcCol = my_rank % blockDIM;
-  rankLeft = ((myProcCol + blockDIM - 1) % blockDIM) + (myProcRow * blockDIM);
-  rankUp = (my_rank + nprocs - blockDIM) % nprocs;
 
   if (DIM < 1 || BLOCKSIZE < 1 || BLOCKSIZE > localDIM)
   {
@@ -121,24 +119,27 @@ int main(int argc, char **argv) {
 
   // Initial matrix shuffle (leaves first row and column alone)
   for (i = 0; i < localDIM; i++){
-    printf("rank %d i: %d\n", my_rank, i);
     // get ranks for left shift and up shift
+    // oneRankLeft = ((myProcCol + blockDIM - 1) % blockDIM) + (myProcRow * blockDIM);
+    // oneRankUp = (my_rank + nprocs - blockDIM) % nprocs;
+    rankLeft = ((myProcCol + blockDIM - 1) % blockDIM) + (myProcRow * blockDIM);
+    rankUp = (my_rank + nprocs - blockDIM) % nprocs;
+
+    // map i to its position in the full dataset
     int rowInFullMatrix = myProcRow * rowOffset + i;
     int colInFullMatrix = myProcCol * colOffset + i;
 
+    // get the number of values we'll send, max is number of values local to this row/col
+    int nValsToSend = (rowInFullMatrix < localDIM) ? rowInFullMatrix : localDIM;
+
     if (rowInFullMatrix != 0){
 
-// TODO NEXT: Segfault on ranks two and three at i == 1
-// breaking in memcpy. Possible off-by-one error?
-if (my_rank == 2 || my_rank == 3){
-  printf("Before\n");
-}
+// TODO: We'll only ever send between 1 and localDIM values left, BUT we might send them
+// left by more than one block, and may have to split the shift to more than one bloc
+
       // shift row X left X cols:
       // Copy i values into send buffer
-      memcpy(send_buff, (void *)my_arrA[rowInFullMatrix], sizeof(int) * rowInFullMatrix);
-if (my_rank == 2 || my_rank == 3){
-  printf("After\n");
-}
+      memcpy(send_buff, (void *)my_arrA[i], sizeof(int) * nValsToSend);
 
       // Isend buffer left
       MPI_Isend(send_buff, rowInFullMatrix, MPI_INT, rankLeft, 0, MPI_COMM_WORLD, &req);
@@ -155,9 +156,7 @@ if (my_rank == 2 || my_rank == 3){
     // shift col X up X cols
   }
 
-  // printf("r %d Before barrier\n", my_rank);
   MPI_Barrier(MPI_COMM_WORLD);
-  // printf("r %d After barrier\n", my_rank);
   
   // print shuffled matrices to verify correctness
   if(DIAGNOSTICS){
@@ -169,9 +168,7 @@ if (my_rank == 2 || my_rank == 3){
   }
 
 
-
   // TODO NEXT
-  // naive_multiply(my_arrA, my_arrB, my_arrC);
 
   // MPI_Barrier(MPI_COMM_WORLD);
   // print_dist_mat(my_arrC, "C", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
@@ -217,7 +214,6 @@ void print_dist_mat(int **arr, const char *name, int localDIM, int nprocs, int m
 }
 
 void print_chunk(int **arr, int localDIM){
-  printf("In print_chunk\n");
   for (int i = 0; i < localDIM; i++){
     for (int k = 0; k < localDIM; k++){
       printf("%-12d ", arr[i][k]);
