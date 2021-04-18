@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <mpi.h>
+#include <string.h>
 
 // declare global config variables
 int DIM;
@@ -15,7 +16,7 @@ void print_dist_mat(int **arr, const char *name, int localDIM, int nprocs, int m
 
 int main(int argc, char **argv) {
   int my_rank, nprocs, N, localN, localDIM, blockDIM, rowOffset, colOffset;
-  int myRow, myCol, localStartIdx, gridRowOffset, gridColOffset;
+  int myProcRow, myProcCol, localStartIdx, gridRowOffset, gridColOffset, rankLeft, rankUp;
   int i, j, k, tmp, print_rank;
   double start_time, end_time;
 
@@ -54,17 +55,20 @@ int main(int argc, char **argv) {
   localN = N / nprocs;
   // The dimensionality of each rank's chunk of the matrix
   localDIM = sqrt(localN);
-  // the number of blocks on one axis of the matrix
-  blockDIM = DIM / localDIM;
 
   rowOffset = DIM;
   colOffset = 1;
+  // TODO: remove?
   gridRowOffset = rowOffset * localDIM;
   gridColOffset = colOffset * localDIM;
 
+  // the number of blocks on one axis of the matrix
+  blockDIM = DIM / localDIM;
   // coordinates of the rank in our matrix of processors
-  myRow = my_rank / blockDIM;
-  myCol = my_rank % blockDIM;
+  myProcRow = my_rank / blockDIM;
+  myProcCol = my_rank % blockDIM;
+  rankLeft = ((myProcCol + blockDIM - 1) % blockDIM) + (myProcRow * blockDIM);
+  rankUp = (my_rank + nprocs - blockDIM) % nprocs;
 
   if (DIM < 1 || BLOCKSIZE < 1 || BLOCKSIZE > localDIM)
   {
@@ -87,9 +91,11 @@ int main(int argc, char **argv) {
   }
 
   // populate arrays in a distributed manner
-  int a[16] = {1, 5, 3, 4, 2, 2, 3, 2, 5, 3, 3, 3, 1, 2, 3, 5};
-  int b[16] = {2, 1, 1, 1, 2, 1, 2, 1, 2, 3, 3, 3, 1, 2, 2, 1};
-  localStartIdx = myRow * gridRowOffset + myCol * gridColOffset;
+  // int a[16] = {1, 5, 3, 4, 2, 2, 3, 2, 5, 3, 3, 3, 1, 2, 3, 5};
+  // int b[16] = {2, 1, 1, 1, 2, 1, 2, 1, 2, 3, 3, 3, 1, 2, 2, 1};
+  int a[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+  int b[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+  localStartIdx = myProcRow * gridRowOffset + myProcCol * gridColOffset;
 // printf("r %d startIdx %d\n", my_rank, localStartIdx);
   for (i = 0; i < localDIM; i++) {
     for (j = 0; j < localDIM; j++) {
@@ -101,15 +107,78 @@ int main(int argc, char **argv) {
   }
 
   // display matrix A by sequentially printing each block
-  print_dist_mat(my_arrA, "A", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
-  print_dist_mat(my_arrB, "B", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
-  MPI_Barrier(MPI_COMM_WORLD);
+  if(DIAGNOSTICS){
+    print_dist_mat(my_arrA, "A", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
+    // print_dist_mat(my_arrB, "B", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
+  }
+  
   // BEGIN CANNON CODE
+  // Allocate send and receive buffers for communications TODO: deal with int overflow
+  MPI_Request req;
+  int *send_buff = (int *)malloc(sizeof(int) * localDIM);
+  // int *recv_buff = (int *)malloc(sizeof(int) * localDIM);
+
+  // Initial matrix shuffle (leaves first row and column alone)
+  for (i = 0; i < localDIM; i++){
+    printf("rank %d i: %d\n", my_rank, i);
+    // get ranks for left shift and up shift
+    int rowInFullMatrix = myProcRow * rowOffset + i;
+    int colInFullMatrix = myProcCol * colOffset + i;
+
+    if (rowInFullMatrix != 0){
+
+// TODO NEXT: Segfault on ranks two and three at i == 1
+// breaking in memcpy. Possible off-by-one error?
+if (my_rank == 2 || my_rank == 3){
+  printf("Before\n");
+}
+      // shift row X left X cols:
+      // Copy i values into send buffer
+      memcpy(send_buff, (void *)my_arrA[rowInFullMatrix], sizeof(int) * rowInFullMatrix);
+if (my_rank == 2 || my_rank == 3){
+  printf("After\n");
+}
+
+      // Isend buffer left
+      MPI_Isend(send_buff, rowInFullMatrix, MPI_INT, rankLeft, 0, MPI_COMM_WORLD, &req);
+
+      // shift remaining local values left i places
+      for (int j = 0; j < localDIM - rowInFullMatrix; j++){
+        my_arrA[i][j] = my_arrA[i][j+i];
+      }
+      // Blocking receive directly into right side of matrix
+      MPI_Recv(&(my_arrA[i][localDIM - rowInFullMatrix]), i, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      MPI_Wait(&req, MPI_STATUS_IGNORE);
+    }
+
+    // shift col X up X cols
+  }
+
+  // printf("r %d Before barrier\n", my_rank);
+  MPI_Barrier(MPI_COMM_WORLD);
+  // printf("r %d After barrier\n", my_rank);
+  
+  // print shuffled matrices to verify correctness
+  if(DIAGNOSTICS){
+    if (my_rank == 0){
+      printf("AFTER SHUFFLE\n");
+    }
+    print_dist_mat(my_arrA, "A", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
+    // print_dist_mat(my_arrB, "B", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
+  }
+
+
+
   // TODO NEXT
   // naive_multiply(my_arrA, my_arrB, my_arrC);
 
   // MPI_Barrier(MPI_COMM_WORLD);
   // print_dist_mat(my_arrC, "C", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
+
+// CLEANUP
+  free(send_buff);
+  // free(recv_buff);
 
   for (int i = 0; i < localDIM; i++)
   {
@@ -148,6 +217,7 @@ void print_dist_mat(int **arr, const char *name, int localDIM, int nprocs, int m
 }
 
 void print_chunk(int **arr, int localDIM){
+  printf("In print_chunk\n");
   for (int i = 0; i < localDIM; i++){
     for (int k = 0; k < localDIM; k++){
       printf("%-12d ", arr[i][k]);
