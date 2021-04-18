@@ -10,6 +10,8 @@ int DIAGNOSTICS;
 int BLOCKSIZE;
 
 // forward declarations
+int one_rank_left(int startCol, int startRow, int blockDim);
+int one_rank_up(int startRank, int nprocs, int blockDim);
 void naive_multiply(int **my_arrA, int **my_arrB, int **my_arrC);
 void print_chunk(int **arr, int localDIM);
 void print_dist_mat(int **arr, const char *name, int localDIM, int nprocs, int my_rank, MPI_Comm world);
@@ -117,13 +119,13 @@ int main(int argc, char **argv) {
   int *send_buff = (int *)malloc(sizeof(int) * localDIM);
   // int *recv_buff = (int *)malloc(sizeof(int) * localDIM);
 
-  // Initial matrix shuffle (leaves first row and column alone)
+  // Initial matrix shuffle
   for (i = 0; i < localDIM; i++){
     // get ranks for left shift and up shift
     // oneRankLeft = ((myProcCol + blockDIM - 1) % blockDIM) + (myProcRow * blockDIM);
     // oneRankUp = (my_rank + nprocs - blockDIM) % nprocs;
-    rankLeft = ((myProcCol + blockDIM - 1) % blockDIM) + (myProcRow * blockDIM);
-    rankUp = (my_rank + nprocs - blockDIM) % nprocs;
+    rankLeft = one_rank_left(myProcCol, myProcRow, blockDIM);
+    rankUp = one_rank_up(my_rank, nprocs, blockDIM);
 
     // map i to its position in the full dataset
     int rowInFullMatrix = myProcRow * rowOffset + i;
@@ -131,6 +133,7 @@ int main(int argc, char **argv) {
 
     // get the number of values we'll send, max is number of values local to this row/col
     int nValsToSend = (rowInFullMatrix < localDIM) ? rowInFullMatrix : localDIM;
+    printf("R %d nValsToSend %d\n", my_rank, nValsToSend);
 
     if (rowInFullMatrix != 0){
 
@@ -221,4 +224,12 @@ void print_chunk(int **arr, int localDIM){
     printf("\n");
   }
   printf("\n");
+}
+
+int one_rank_left(int startCol, int startRow, int blockDIM){
+    return ((startCol + blockDIM - 1) % blockDIM) + (startRow * blockDIM);
+}
+
+int one_rank_up(int startRank, int nprocs, int blockDIM){
+    return (startRank + nprocs - blockDIM) % nprocs;
 }
