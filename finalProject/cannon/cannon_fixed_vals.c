@@ -129,39 +129,36 @@ int main(int argc, char **argv) {
 		int rowInFullMatrix = myProcRow * localDIM + i;
 		int colInFullMatrix = myProcCol * localDIM + i;
 
-		// get the number of values we'll send, max is number of values local to this row/col
+		// get the number of values we'll send, capped at the number of values local to this row/col
 		int nValsToSend = (rowInFullMatrix < localDIM) ? rowInFullMatrix : localDIM;
 
-// TODO: We'll only ever send between 1 and localDIM values left, BUT we might send them
-// left by more than one block, and may have to split the shift to more than one bloc
-// sendbuff is getting the right values and number of values (for send to one rank)
 		if (nValsToSend != 0){
       memcpy(send_buff, (void *)my_arrA[i], sizeof(int) * nValsToSend);
       int isSendSplit = rowInFullMatrix % localDIM;
       int shiftNRanks = rowInFullMatrix / localDIM;
       if (rowInFullMatrix <= localDIM){
-        // TODO: incorporate this into the later branches (isSendSplit and ! isSendSplit) - I think it just works
-		  	// shift row A[X] left by rowInFullMatrix cols:
+        // Send requisite number of values left one rank
         rankLeft = n_ranks_left(my_rank, blockDIM, 1);
-		  	// Isend buffer left
 		  	MPI_Isend(send_buff, nValsToSend, MPI_INT, rankLeft, 0, MPI_COMM_WORLD, &req);
+
 		  	// shift remaining local values left i places
 		  	for (int j = 0; j < localDIM - rowInFullMatrix; j++){
 		  		my_arrA[i][j] = my_arrA[i][j+i];
 		  	}
-		  	// Blocking receive directly into right side of matrix
+
+		  	// receive directly into right side of matrix
 		  	MPI_Recv(&(my_arrA[i][localDIM - rowInFullMatrix]), nValsToSend, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		  	MPI_Wait(&req, MPI_STATUS_IGNORE);
 
-		  } else if( ! isSendSplit ){ // The sent data will all be sent to one rank
-        // find one destination rank
+		  } else if( ! isSendSplit ){
+        // The sent data will all be sent to one rank, so find that rank and replace all local values
         int dest_rank = n_ranks_left(my_rank, blockDIM, shiftNRanks);
 		  	MPI_Isend(send_buff, nValsToSend, MPI_INT, dest_rank, 0, MPI_COMM_WORLD, &req);
 		  	MPI_Recv(&(my_arrA[i][0]), nValsToSend, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         MPI_Wait(&req, MPI_STATUS_IGNORE);
 
-		  } else { // The sent data will be split across two ranks
-        // find destination ranks
+		  } else {
+        // The sent data will be split across two ranks, so find both ranks and the number of values for each
         int toFarther = rowInFullMatrix % localDIM;
         int toNearer = localDIM - toFarther;
         int fartherRank = n_ranks_left(my_rank, blockDIM, shiftNRanks+1);
@@ -173,7 +170,7 @@ int main(int argc, char **argv) {
         // TODO: RECEIVE NON-BLOCKING?
 		  	MPI_Recv(&(my_arrA[i][toNearer]), toFarther, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		  	MPI_Recv(&(my_arrA[i][0]), toNearer, MPI_INT, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        // This looks like it could deadlock to me? Test might help?
+
         MPI_Wait(&req, MPI_STATUS_IGNORE);
         MPI_Wait(&req2, MPI_STATUS_IGNORE);
 		  }
