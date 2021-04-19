@@ -10,7 +10,7 @@ int DIAGNOSTICS;
 int BLOCKSIZE;
 
 // forward declarations
-int one_rank_left(int my_rank, int blockDIM); 
+int n_ranks_left(int my_rank, int blockDIM, int n);
 int one_rank_up(int startRank, int nprocs, int blockDim);
 void naive_multiply(int **my_arrA, int **my_arrB, int **my_arrC);
 void print_chunk(int **arr, int localDIM);
@@ -122,7 +122,7 @@ int main(int argc, char **argv) {
 	// Initial matrix shuffle
 	for (i = 0; i < localDIM; i++){
 		// get ranks for left shift and up shift
-		rankLeft = one_rank_left(my_rank, blockDIM);
+		rankLeft = n_ranks_left(my_rank, blockDIM, 1);
 		rankUp = one_rank_up(my_rank, nprocs, blockDIM);
 
 		// map i to its position in the full dataset
@@ -141,8 +141,7 @@ int main(int argc, char **argv) {
 		if (rowInFullMatrix <= localDIM || rowInFullMatrix % localDIM == 0){
 			printf("R: %d rowInFull %d contiguous\n", my_rank, rowInFullMatrix);
 		} else {
-			int second_rank_left = one_rank_left(rankLeft, blockDIM);
-			printf("R: %d rankLeft: %d second_rank_left: %d rowInFull %d split\n", my_rank, rankLeft, second_rank_left, rowInFullMatrix);
+			printf("R: %d rankLeft: %d second_rank_left: %d rowInFull %d split\n", my_rank, n_ranks_left(my_rank, blockDIM, 1), n_ranks_left(my_rank, blockDIM, 2), rowInFullMatrix);
 		}
 
 			// shift row A[X] left by rowInFullMatrix cols:
@@ -231,10 +230,16 @@ void print_chunk(int **arr, int localDIM){
 	printf("\n");
 }
 
-int one_rank_left(int my_rank, int blockDIM){
-	int myProcRow = my_rank / blockDIM;
-	int myProcCol = my_rank % blockDIM;
-	return ((myProcCol + blockDIM - 1) % blockDIM) + (myProcRow * blockDIM);
+int n_ranks_left(int my_rank, int blockDIM, int n){
+  int myProcRow, myProcCol;
+  int ret_rank = my_rank;
+  for (int i = 0; i < n; i++){
+    // find the grid row and column of current rank
+	  myProcRow = ret_rank / blockDIM;
+	  myProcCol = ret_rank % blockDIM;
+	  ret_rank = ((myProcCol + blockDIM - 1) % blockDIM) + (myProcRow * blockDIM);
+  }
+  return ret_rank;
 }
 
 int one_rank_up(int startRank, int nprocs, int blockDIM){
