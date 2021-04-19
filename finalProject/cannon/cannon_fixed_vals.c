@@ -128,19 +128,19 @@ int main(int argc, char **argv) {
     rankUp = one_rank_up(my_rank, nprocs, blockDIM);
 
     // map i to its position in the full dataset
-    int rowInFullMatrix = myProcRow * rowOffset + i;
-    int colInFullMatrix = myProcCol * colOffset + i;
+    int rowInFullMatrix = myProcRow * localDIM + i;
+    int colInFullMatrix = myProcCol * localDIM + i;
 
     // get the number of values we'll send, max is number of values local to this row/col
     int nValsToSend = (rowInFullMatrix < localDIM) ? rowInFullMatrix : localDIM;
-    printf("R %d nValsToSend %d\n", my_rank, nValsToSend);
+    printf("R: %d nValsToSend %d\n", my_rank, nValsToSend);
 
-    if (rowInFullMatrix != 0){
+    if (nValsToSend != 0){
 
 // TODO: We'll only ever send between 1 and localDIM values left, BUT we might send them
 // left by more than one block, and may have to split the shift to more than one bloc
 
-      // shift row X left X cols:
+      // shift row A[X] left X cols:
       // Copy i values into send buffer
       memcpy(send_buff, (void *)my_arrA[i], sizeof(int) * nValsToSend);
 
@@ -156,7 +156,7 @@ int main(int argc, char **argv) {
       MPI_Wait(&req, MPI_STATUS_IGNORE);
     }
 
-    // shift col X up X cols
+    // TODO: shift col B[X] up X cols
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
