@@ -10,8 +10,9 @@ int DIAGNOSTICS;
 int BLOCKSIZE;
 
 // forward declarations
+int copy_col(int **arr, int *send_buff, int col_idx, int n_vals);
 int n_ranks_left(int my_rank, int blockDIM, int n);
-int one_rank_up(int startRank, int nprocs, int blockDim);
+int n_ranks_up(int my_rank, int nprocs, int blockDIM, int n_vals);
 void naive_multiply(int **my_arrA, int **my_arrB, int **my_arrC);
 void print_chunk(int **arr, int localDIM);
 void print_dist_mat(int **arr, const char *name, int localDIM, int nprocs, int my_rank, MPI_Comm world);
@@ -123,7 +124,7 @@ int main(int argc, char **argv) {
 	for (i = 0; i < localDIM; i++){
 		// get ranks for left shift and up shift
 		rankLeft = n_ranks_left(my_rank, blockDIM, 1);
-		rankUp = one_rank_up(my_rank, nprocs, blockDIM);
+		rankUp = n_ranks_up(my_rank, nprocs, blockDIM, 1);
 
 		// map i to its position in the full dataset
 		int rowInFullMatrix = myProcRow * localDIM + i;
@@ -258,6 +259,16 @@ int n_ranks_left(int my_rank, int blockDIM, int n){
   return ret_rank;
 }
 
-int one_rank_up(int startRank, int nprocs, int blockDIM){
-		return (startRank + nprocs - blockDIM) % nprocs;
+int n_ranks_up(int my_rank, int nprocs, int blockDIM, int n_vals){
+  int ret_rank = my_rank;
+  for (int i = 0; i < n_vals; i++ ){
+     ret_rank = (ret_rank + nprocs - blockDIM) % nprocs;
+  }
+  return ret_rank;
+}
+
+int copy_col(int **arr, int *send_buff, int col_idx, int n_vals){
+  for (int i = 0; i < n_vals; i++ ){
+    send_buff[i] = arr[i][col_idx];
+  }
 }
