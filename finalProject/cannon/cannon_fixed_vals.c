@@ -137,24 +137,11 @@ int main(int argc, char **argv) {
 		int nValsToSendC = (colInFullMatrix < localDIM) ? colInFullMatrix : localDIM;
 
 		if (nValsToSendR != 0){
-      memcpy(send_buff, (void *)my_arrA[i], sizeof(int) * nValsToSendR);
+      memcpy(send_buff, (void *)my_arrA[i], sizeof(int) * localDIM);
       int isSendSplit = rowInFullMatrix % localDIM;
       int shiftNRanks = rowInFullMatrix / localDIM;
-      if (rowInFullMatrix <= localDIM){
-        // Send requisite number of values left one rank
-        rankLeft = n_ranks_left(my_rank, blockDIM, 1);
-		  	MPI_Isend(send_buff, nValsToSendR, MPI_INT, rankLeft, 0, MPI_COMM_WORLD, &req);
 
-		  	// shift remaining local values left i places
-		  	for (int j = 0; j < localDIM - rowInFullMatrix; j++){
-		  		my_arrA[i][j] = my_arrA[i][j+i];
-		  	}
-
-		  	// receive directly into right side of matrix
-		  	MPI_Recv(&(my_arrA[i][localDIM - rowInFullMatrix]), nValsToSendR, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		  	MPI_Wait(&req, MPI_STATUS_IGNORE);
-
-		  } else if( ! isSendSplit ){
+		  if ( ! isSendSplit ){
         // The sent data will all be sent to one rank, so find that rank and replace all local values
         int dest_rank = n_ranks_left(my_rank, blockDIM, shiftNRanks);
 		  	MPI_Isend(send_buff, nValsToSendR, MPI_INT, dest_rank, 0, MPI_COMM_WORLD, &req);
