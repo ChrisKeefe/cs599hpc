@@ -133,10 +133,8 @@ int main(int argc, char **argv) {
     int colInFullMatrix = myProcCol * localDIM + i;
 
     // get the number of values we'll send, capped at the number of values local to this row/col
-    int nValsToSendR = (rowInFullMatrix < localDIM) ? rowInFullMatrix : localDIM;
     int nValsToSendC = (colInFullMatrix < localDIM) ? colInFullMatrix : localDIM;
 
-    if (nValsToSendR != 0){
       memcpy(send_buff, (void *)my_arrA[i], sizeof(int) * localDIM);
       int isSendSplit = rowInFullMatrix % localDIM;
       int shiftNRanks = rowInFullMatrix / localDIM;
@@ -144,8 +142,8 @@ int main(int argc, char **argv) {
       if ( ! isSendSplit ){
         // The sent data will all be sent to one rank, so find that rank and replace all local values
         int dest_rank = n_ranks_left(my_rank, blockDIM, shiftNRanks);
-        MPI_Isend(send_buff, nValsToSendR, MPI_INT, dest_rank, 0, MPI_COMM_WORLD, &req);
-        MPI_Recv(&(my_arrA[i][0]), nValsToSendR, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Isend(send_buff, localDIM, MPI_INT, dest_rank, 0, MPI_COMM_WORLD, &req);
+        MPI_Recv(&(my_arrA[i][0]), localDIM, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         MPI_Wait(&req, MPI_STATUS_IGNORE);
 
       } else {
@@ -165,7 +163,6 @@ int main(int argc, char **argv) {
         MPI_Wait(&req, MPI_STATUS_IGNORE);
         MPI_Wait(&req2, MPI_STATUS_IGNORE);
       }
-    }	
 
     // TODO: shift col B[X] up X cols
     if (nValsToSendC != 0){
