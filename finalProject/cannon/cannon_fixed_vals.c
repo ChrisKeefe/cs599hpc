@@ -9,16 +9,20 @@ int DIM;
 int DIAGNOSTICS;
 int BLOCKSIZE;
 
+// Direction codes for shift operations
+enum hdir {LEFT, RIGHT};
+enum vdir {UP, DOWN};
+
 // forward declarations
 void buffer_to_col(int *recv_buff, int **arr, int col_idx, int start_row, int n_vals);
 void col_to_buffer(int **arr, int *send_buff, int col_idx, int n_vals);
-int n_ranks_left(int my_rank, int blockDIM, int n);
-int n_ranks_up(int my_rank, int nprocs, int blockDIM, int n_vals);
+int n_ranks_h(int my_rank, int blockDIM, int n, enum hdir direction);
+int n_ranks_v(int my_rank, int nprocs, int blockDIM, int n_vals, enum vdir direction);
 void naive_multiply(int **my_arrA, int **my_arrB, int **my_arrC);
 void print_chunk(int **arr, int localDIM);
 void print_dist_mat(int **arr, const char *name, int localDIM, int nprocs, int my_rank, MPI_Comm world);
-void shift_col_up(int my_rank, int nprocs, int ** arr, int locColNum, int localDIM, int nPositions);
-void shift_row_left(int my_rank, int *arr_row, int localDIM, int nPositions);
+void vshift(int my_rank, int nprocs, int ** arr, int locColNum, int localDIM, int nPositions, enum vdir direction);
+void hshift(int my_rank, int *arr_row, int localDIM, int nPositions, enum hdir direction);
 
 int main(int argc, char **argv) {
   int my_rank, nprocs, N, localN, localDIM, blockDIM, rowOffset, colOffset;
@@ -125,11 +129,11 @@ int main(int argc, char **argv) {
     // Shift row A[x] (in the full matrix) left x rows, so we need to map
     // local row i to its position in the full dataset
     int rowInFullMatrix = myProcRow * localDIM + i;
-    shift_row_left(my_rank, my_arrA[i], localDIM, rowInFullMatrix);
+    hshift(my_rank, my_arrA[i], localDIM, rowInFullMatrix, LEFT);
 
     // shift col B[X] up X cols
     int colInFullMatrix = myProcCol * localDIM + i;
-    shift_col_up(my_rank, nprocs, my_arrB, i, localDIM, colInFullMatrix);
+    vshift(my_rank, nprocs, my_arrB, i, localDIM, colInFullMatrix, UP);
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -150,7 +154,6 @@ int main(int argc, char **argv) {
   // print_dist_mat(my_arrC, "C", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
 
 // CLEANUP
-
   for (int i = 0; i < localDIM; i++)
   {
     free(my_arrA[i]);
@@ -197,22 +200,32 @@ void print_chunk(int **arr, int localDIM){
   printf("\n");
 }
 
-int n_ranks_left(int my_rank, int blockDIM, int n){
+int n_ranks_h(int my_rank, int blockDIM, int n, enum hdir direction){
   int myProcRow, myProcCol;
   int ret_rank = my_rank;
   for (int i = 0; i < n; i++){
     // find the grid row and column of current rank
     myProcRow = ret_rank / blockDIM;
     myProcCol = ret_rank % blockDIM;
-    ret_rank = ((myProcCol + blockDIM - 1) % blockDIM) + (myProcRow * blockDIM);
+    if(direction == LEFT){
+      ret_rank = ((myProcCol + blockDIM - 1) % blockDIM) + (myProcRow * blockDIM);
+    } else { // direction == RIGHT
+      ret_rank = ((myProcCol + 1) % blockDIM) + (myProcRow * blockDIM);
+    }
   }
   return ret_rank;
 }
 
-int n_ranks_up(int my_rank, int nprocs, int blockDIM, int n_vals){
+int n_ranks_v(int my_rank, int nprocs, int blockDIM, int n_vals, enum vdir direction){
   int ret_rank = my_rank;
-  for (int i = 0; i < n_vals; i++ ){
-     ret_rank = (ret_rank + nprocs - blockDIM) % nprocs;
+  if(direction == UP){
+    for (int i = 0; i < n_vals; i++ ){
+       ret_rank = (ret_rank + nprocs - blockDIM) % nprocs;
+    }
+  } else { // direction == DOWN
+    for (int i = 0; i < n_vals; i++ ){
+       ret_rank = (ret_rank + blockDIM) % nprocs;
+    }
   }
   return ret_rank;
 }
@@ -229,7 +242,7 @@ void col_to_buffer(int **arr, int *send_buff, int col_idx, int n_vals){
   }
 }
 
-void shift_row_left(int my_rank, int *arr_row, int localDIM, int nPositions){
+void hshift(int my_rank, int *arr_row, int localDIM, int nPositions, enum hdir direction){
   // Shifts local values from a distributed matrix row horizontally across ranks by nPositions
   // Allocate send and receive buffers for communications TODO: deal with int overflow
   MPI_Request req, req2;
@@ -246,7 +259,7 @@ void shift_row_left(int my_rank, int *arr_row, int localDIM, int nPositions){
 
   if ( ! sendIsSplit ){
     // The sent data will all be sent to one rank, so find that rank and replace all local values
-    int dest_rank = n_ranks_left(my_rank, blockDIM, shiftNRanks);
+    int dest_rank = n_ranks_h(my_rank, blockDIM, shiftNRanks, direction);
     MPI_Isend(send_buff, localDIM, MPI_INT, dest_rank, 0, MPI_COMM_WORLD, &req);
     MPI_Recv(&(arr_row[0]), localDIM, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     MPI_Wait(&req, MPI_STATUS_IGNORE);
@@ -255,8 +268,8 @@ void shift_row_left(int my_rank, int *arr_row, int localDIM, int nPositions){
     // The sent data will be split across two ranks, so find both ranks and the number of values for each
     int toFarther = nPositions % localDIM;
     int toNearer = localDIM - toFarther;
-    int fartherRank = n_ranks_left(my_rank, blockDIM, shiftNRanks+1);
-    int nearerRank = n_ranks_left(my_rank, blockDIM, shiftNRanks);
+    int fartherRank = n_ranks_h(my_rank, blockDIM, shiftNRanks+1, direction);
+    int nearerRank = n_ranks_h(my_rank, blockDIM, shiftNRanks, direction);
 
     MPI_Isend(send_buff, toFarther, MPI_INT, fartherRank, 0, MPI_COMM_WORLD, &req);
     MPI_Isend(send_buff + toFarther, toNearer, MPI_INT, nearerRank, 1, MPI_COMM_WORLD, &req2);
@@ -273,7 +286,7 @@ void shift_row_left(int my_rank, int *arr_row, int localDIM, int nPositions){
     free(recv_buff);
 }
 
-void shift_col_up(int my_rank, int nprocs, int ** arr, int locColNum, int localDIM, int nPositions){
+void vshift(int my_rank, int nprocs, int ** arr, int locColNum, int localDIM, int nPositions, enum vdir direction){
   // Shifts local values from a distributed matrix row vertically across ranks by nPositions
   // Allocate send and receive buffers for communications TODO: deal with int overflow
   MPI_Request req, req2;
@@ -288,7 +301,7 @@ void shift_col_up(int my_rank, int nprocs, int ** arr, int locColNum, int localD
 
   if ( ! sendIsSplit ){
     // The sent data will all be sent to one rank, so find that rank and replace all local values
-    int dest_rank = n_ranks_up(my_rank, nprocs, blockDIM, shiftNRanks);
+    int dest_rank = n_ranks_v(my_rank, nprocs, blockDIM, shiftNRanks, direction);
     MPI_Isend(send_buff, localDIM, MPI_INT, dest_rank, 2, MPI_COMM_WORLD, &req);
     MPI_Recv(recv_buff , localDIM, MPI_INT, MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     buffer_to_col(recv_buff, arr, locColNum, 0, localDIM);
@@ -299,8 +312,8 @@ void shift_col_up(int my_rank, int nprocs, int ** arr, int locColNum, int localD
     int *r_buff2 = (int *)malloc(sizeof(int) * localDIM);
     int toFarther = nPositions % localDIM;
     int toNearer = localDIM - toFarther;
-    int fartherRank = n_ranks_up(my_rank, nprocs, blockDIM, shiftNRanks+1);
-    int nearerRank = n_ranks_up(my_rank, nprocs, blockDIM, shiftNRanks);
+    int fartherRank = n_ranks_v(my_rank, nprocs, blockDIM, shiftNRanks+1, direction);
+    int nearerRank = n_ranks_v(my_rank, nprocs, blockDIM, shiftNRanks, direction);
 
     MPI_Isend(send_buff, toFarther, MPI_INT, fartherRank, 2, MPI_COMM_WORLD, &req);
     MPI_Isend(send_buff + toFarther, toNearer, MPI_INT, nearerRank, 3, MPI_COMM_WORLD, &req2);
