@@ -125,11 +125,22 @@ int main(int argc, char **argv) {
   
   // BEGIN CANNON CODE
   // Initial matrix shuffle
+//  for (i = 0; i < localDIM; i++){
+//    // Shift row A[x] (in the full matrix) left x rows, so we need to map
+//    // local row i to its position in the full dataset
+//    int rowInFullMatrix = myProcRow * localDIM + i;
+//    hshift(my_rank, my_arrA[i], localDIM, rowInFullMatrix, LEFT);
+//
+//    // shift col B[X] up X cols
+//    int colInFullMatrix = myProcCol * localDIM + i;
+//    vshift(my_rank, nprocs, my_arrB, i, localDIM, colInFullMatrix, UP);
+//  }
+
+// TODO: Multiply
+
+  // Shift all rows/cols down/right
   for (i = 0; i < localDIM; i++){
-    // Shift row A[x] (in the full matrix) left x rows, so we need to map
-    // local row i to its position in the full dataset
-    int rowInFullMatrix = myProcRow * localDIM + i;
-    hshift(my_rank, my_arrA[i], localDIM, rowInFullMatrix, LEFT);
+    hshift(my_rank, my_arrA[i], localDIM, 1, RIGHT);
 
     // shift col B[X] up X cols
     int colInFullMatrix = myProcCol * localDIM + i;
@@ -271,12 +282,16 @@ void hshift(int my_rank, int *arr_row, int localDIM, int nPositions, enum hdir d
     int fartherRank = n_ranks_h(my_rank, blockDIM, shiftNRanks+1, direction);
     int nearerRank = n_ranks_h(my_rank, blockDIM, shiftNRanks, direction);
 
-    MPI_Isend(send_buff, toFarther, MPI_INT, fartherRank, 0, MPI_COMM_WORLD, &req);
-    MPI_Isend(send_buff + toFarther, toNearer, MPI_INT, nearerRank, 1, MPI_COMM_WORLD, &req2);
+    int sendNearOffset = (direction == LEFT) ? toFarther: 0;
+    int sendFarOffset = (direction == LEFT) ? 0: toFarther;
+    MPI_Isend(send_buff + sendFarOffset, toFarther, MPI_INT, fartherRank, 0, MPI_COMM_WORLD, &req);
+    MPI_Isend(send_buff + sendNearOffset, toNearer, MPI_INT, nearerRank, 1, MPI_COMM_WORLD, &req2);
 
     // TODO: RECEIVE NON-BLOCKING?
-    MPI_Recv(&(arr_row[toNearer]), toFarther, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    MPI_Recv(&(arr_row[0]), toNearer, MPI_INT, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    int recvNearOffset = (direction == LEFT) ? 0: toFarther;
+    int recvFarOffset = (direction == LEFT) ? toNearer: 0;
+    MPI_Recv(&(arr_row[recvFarOffset]), toFarther, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(&(arr_row[recvNearOffset]), toNearer, MPI_INT, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
     MPI_Wait(&req, MPI_STATUS_IGNORE);
     MPI_Wait(&req2, MPI_STATUS_IGNORE);
