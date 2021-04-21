@@ -16,10 +16,11 @@ int n_ranks_up(int my_rank, int nprocs, int blockDIM, int n_vals);
 void naive_multiply(int **my_arrA, int **my_arrB, int **my_arrC);
 void print_chunk(int **arr, int localDIM);
 void print_dist_mat(int **arr, const char *name, int localDIM, int nprocs, int my_rank, MPI_Comm world);
+void shift_row_left(int * send_buff, int my_rank, int *arr_row, int localDIM, int nPositions);
 
 int main(int argc, char **argv) {
   int my_rank, nprocs, N, localN, localDIM, blockDIM, rowOffset, colOffset;
-  int myProcRow, myProcCol, localStartIdx, gridRowOffset, gridColOffset, rankLeft, rankUp;
+  int myProcRow, myProcCol, localStartIdx, gridRowOffset, gridColOffset;
   int i, j, k, tmp, print_rank;
   double start_time, end_time;
 
@@ -124,55 +125,17 @@ int main(int argc, char **argv) {
 
   // Initial matrix shuffle
   for (i = 0; i < localDIM; i++){
-    // get ranks for left shift and up shift
-    rankLeft = n_ranks_left(my_rank, blockDIM, 1);
-    rankUp = n_ranks_up(my_rank, nprocs, blockDIM, 1);
-
-    // map i to its position in the full dataset
+    // Shift row A[x] (in the full matrix) left x rows, so we need to map
+    // local row i to its position in the full dataset
     int rowInFullMatrix = myProcRow * localDIM + i;
-    int colInFullMatrix = myProcCol * localDIM + i;
-
-    // get the number of values we'll send, capped at the number of values local to this row/col
-    int nValsToSendC = (colInFullMatrix < localDIM) ? colInFullMatrix : localDIM;
-
-    memcpy(send_buff, (void *)my_arrA[i], sizeof(int) * localDIM);
-    int isSendSplit = rowInFullMatrix % localDIM;
-    int shiftNRanks = rowInFullMatrix / localDIM;
-
-    if ( ! isSendSplit ){
-      // The sent data will all be sent to one rank, so find that rank and replace all local values
-      int dest_rank = n_ranks_left(my_rank, blockDIM, shiftNRanks);
-      MPI_Isend(send_buff, localDIM, MPI_INT, dest_rank, 0, MPI_COMM_WORLD, &req);
-      MPI_Recv(&(my_arrA[i][0]), localDIM, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      MPI_Wait(&req, MPI_STATUS_IGNORE);
-
-    } else {
-      // The sent data will be split across two ranks, so find both ranks and the number of values for each
-      int toFarther = rowInFullMatrix % localDIM;
-      int toNearer = localDIM - toFarther;
-      int fartherRank = n_ranks_left(my_rank, blockDIM, shiftNRanks+1);
-      int nearerRank = n_ranks_left(my_rank, blockDIM, shiftNRanks);
-
-      MPI_Isend(send_buff, toFarther, MPI_INT, fartherRank, 0, MPI_COMM_WORLD, &req);
-      MPI_Isend(send_buff + toFarther, toNearer, MPI_INT, nearerRank, 1, MPI_COMM_WORLD, &req2);
-
-      // TODO: RECEIVE NON-BLOCKING?
-      MPI_Recv(&(my_arrA[i][toNearer]), toFarther, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      MPI_Recv(&(my_arrA[i][0]), toNearer, MPI_INT, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-      MPI_Wait(&req, MPI_STATUS_IGNORE);
-      MPI_Wait(&req2, MPI_STATUS_IGNORE);
-    }
+    shift_row_left(send_buff, my_rank, my_arrA[i], localDIM, rowInFullMatrix);
 
     // TODO: shift col B[X] up X cols
-    if (nValsToSendC != 0){
-      copy_col(my_arrB, send_buff, i, nValsToSendC);
-      int isSendSplit = colInFullMatrix % localDIM;
-      int shiftNRanks = colInFullMatrix / localDIM;
-    }
-    if (colInFullMatrix <= localDIM){
-      // TODO: Start filling this in? Or refactor the section above to simplify?
-    }
+    // map local col i to its position in the full dataset
+    int colInFullMatrix = myProcCol * localDIM + i;
+      // copy_col(my_arrB, send_buff, i, localDIM);
+      // int sendIsSplit = colInFullMatrix % localDIM;
+      // int shiftNRanks = colInFullMatrix / localDIM;
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -266,4 +229,41 @@ int copy_col(int **arr, int *send_buff, int col_idx, int n_vals){
   for (int i = 0; i < n_vals; i++ ){
     send_buff[i] = arr[i][col_idx];
   }
+}
+
+void shift_row_left(int * send_buff, int my_rank, int *arr_row, int localDIM, int nPositions){
+  MPI_Request req, req2;
+  int blockDIM = DIM / localDIM;
+  int myProcRow = my_rank / blockDIM;
+
+  // copy local submatrix row into sendbuffer. parts of the sendbuffer will be
+  // distributed as needed below
+  memcpy(send_buff, (void *)arr_row, sizeof(int) * localDIM);
+  int sendIsSplit = nPositions % localDIM;
+  int shiftNRanks = nPositions / localDIM;
+
+  if ( ! sendIsSplit ){
+    // The sent data will all be sent to one rank, so find that rank and replace all local values
+    int dest_rank = n_ranks_left(my_rank, blockDIM, shiftNRanks);
+    MPI_Isend(send_buff, localDIM, MPI_INT, dest_rank, 0, MPI_COMM_WORLD, &req);
+    MPI_Recv(&(arr_row[0]), localDIM, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Wait(&req, MPI_STATUS_IGNORE);
+
+  } else {
+    // The sent data will be split across two ranks, so find both ranks and the number of values for each
+    int toFarther = nPositions % localDIM;
+    int toNearer = localDIM - toFarther;
+    int fartherRank = n_ranks_left(my_rank, blockDIM, shiftNRanks+1);
+    int nearerRank = n_ranks_left(my_rank, blockDIM, shiftNRanks);
+
+    MPI_Isend(send_buff, toFarther, MPI_INT, fartherRank, 0, MPI_COMM_WORLD, &req);
+    MPI_Isend(send_buff + toFarther, toNearer, MPI_INT, nearerRank, 1, MPI_COMM_WORLD, &req2);
+
+    // TODO: RECEIVE NON-BLOCKING?
+    MPI_Recv(&(arr_row[toNearer]), toFarther, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(&(arr_row[0]), toNearer, MPI_INT, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    MPI_Wait(&req, MPI_STATUS_IGNORE);
+    MPI_Wait(&req2, MPI_STATUS_IGNORE);
+    }
 }
