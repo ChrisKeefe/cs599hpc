@@ -287,8 +287,8 @@ void shift_col_up(int * send_buff, int * recv_buff, int my_rank, int nprocs, int
     int dest_rank = n_ranks_up(my_rank, nprocs, blockDIM, shiftNRanks);
     // TODO: Dest rank is 0 for column 2, should be 1
   // printf("r %d locColNum %d nPositions: %d shiftNRanks %d dest: %d\n", my_rank, locColNum, nPositions, shiftNRanks, dest_rank);
-    MPI_Isend(send_buff, localDIM, MPI_INT, dest_rank, 0, MPI_COMM_WORLD, &req);
-    MPI_Recv(recv_buff , localDIM, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Isend(send_buff, localDIM, MPI_INT, dest_rank, 2, MPI_COMM_WORLD, &req);
+    MPI_Recv(recv_buff , localDIM, MPI_INT, MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     buffer_to_col(recv_buff, arr, locColNum, 0, localDIM);
     MPI_Wait(&req, MPI_STATUS_IGNORE);
 
@@ -300,12 +300,16 @@ void shift_col_up(int * send_buff, int * recv_buff, int my_rank, int nprocs, int
     int fartherRank = n_ranks_up(my_rank, nprocs, blockDIM, shiftNRanks+1);
     int nearerRank = n_ranks_up(my_rank, nprocs, blockDIM, shiftNRanks);
 
-    MPI_Isend(send_buff, toFarther, MPI_INT, fartherRank, 0, MPI_COMM_WORLD, &req);
-    MPI_Isend(send_buff + toFarther, toNearer, MPI_INT, nearerRank, 1, MPI_COMM_WORLD, &req2);
+    MPI_Isend(send_buff, toFarther, MPI_INT, fartherRank, 2, MPI_COMM_WORLD, &req);
+    MPI_Isend(send_buff + toFarther, toNearer, MPI_INT, nearerRank, 3, MPI_COMM_WORLD, &req2);
 
     // TODO: RECEIVE NON-BLOCKING?
-    MPI_Recv(recv_buff, toFarther, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    MPI_Recv(r_buff2, toNearer, MPI_INT, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(recv_buff, toFarther, MPI_INT, MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(r_buff2, toNearer, MPI_INT, MPI_ANY_SOURCE, 3, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    if (my_rank == 3) {
+      printf("rec1 %d rec2 %d \n", recv_buff[0], r_buff2[0]);
+    }
 
     MPI_Wait(&req, MPI_STATUS_IGNORE);
     MPI_Wait(&req2, MPI_STATUS_IGNORE);
