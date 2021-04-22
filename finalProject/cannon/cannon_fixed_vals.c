@@ -118,7 +118,7 @@ int main(int argc, char **argv) {
 
   // display matrix A by sequentially printing each block
   if(DIAGNOSTICS){
-    // print_dist_mat(my_arrA, "A", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
+    print_dist_mat(my_arrA, "A", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
     // print_dist_mat(my_arrB, "B", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
     MPI_Barrier(MPI_COMM_WORLD);
   }
@@ -136,22 +136,24 @@ int main(int argc, char **argv) {
     vshift(my_rank, nprocs, my_arrB, i, localDIM, colInFullMatrix, UP);
   }
 
-MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
   
   // print shuffled matrices to verify correctness
   if(DIAGNOSTICS){
     if (my_rank == 0){
       printf("AFTER SHUFFLE\n");
     }
-    // print_dist_mat(my_arrA, "A", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
+    print_dist_mat(my_arrA, "A", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
     // print_dist_mat(my_arrB, "B", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
   }
 
-// TODO: Multiply
-  // Shift all rows/cols down/right
-  for (i = 0; i < localDIM; i++){
+  // TODO NEXT: Multiply
+
+  // Shift all rows/cols down/right DIM -1 times and repeat
+  for (i = 0; i < DIM - 1; i++){
     hshift(my_rank, my_arrA[i], localDIM, 1, RIGHT);
     vshift(my_rank, nprocs, my_arrB, i, localDIM, 1, DOWN);
+    // TODO: Multiply
   }
 
   // MPI_Barrier(MPI_COMM_WORLD);
