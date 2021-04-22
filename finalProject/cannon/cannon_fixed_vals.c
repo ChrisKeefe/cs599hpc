@@ -103,7 +103,7 @@ int main(int argc, char **argv) {
   // int b[16] = {2, 1, 1, 1, 2, 1, 2, 1, 2, 3, 3, 3, 1, 2, 2, 1};
   // int a[9] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
   // int b[9] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
-  int a[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+  int a[16] = {-0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -15};
   int b[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
   localStartIdx = myProcRow * gridRowOffset + myProcCol * gridColOffset;
 // printf("r %d startIdx %d\n", my_rank, localStartIdx);
@@ -119,35 +119,24 @@ int main(int argc, char **argv) {
   // display matrix A by sequentially printing each block
   if(DIAGNOSTICS){
     // print_dist_mat(my_arrA, "A", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
-    print_dist_mat(my_arrB, "B", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
+    // print_dist_mat(my_arrB, "B", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
     MPI_Barrier(MPI_COMM_WORLD);
   }
   
   // BEGIN CANNON CODE
   // Initial matrix shuffle
-//  for (i = 0; i < localDIM; i++){
-//    // Shift row A[x] (in the full matrix) left x rows, so we need to map
-//    // local row i to its position in the full dataset
-//    int rowInFullMatrix = myProcRow * localDIM + i;
-//    hshift(my_rank, my_arrA[i], localDIM, rowInFullMatrix, LEFT);
-//
-//    // shift col B[X] up X cols
-//    int colInFullMatrix = myProcCol * localDIM + i;
-//    vshift(my_rank, nprocs, my_arrB, i, localDIM, colInFullMatrix, UP);
-//  }
-
-// TODO: Multiply
-
-  // Shift all rows/cols down/right
   for (i = 0; i < localDIM; i++){
-    hshift(my_rank, my_arrA[i], localDIM, 1, RIGHT);
+    // Shift row A[x] (in the full matrix) left x rows, so we need to map
+    // local row i to its position in the full dataset
+    int rowInFullMatrix = myProcRow * localDIM + i;
+    hshift(my_rank, my_arrA[i], localDIM, rowInFullMatrix, LEFT);
 
     // shift col B[X] up X cols
     int colInFullMatrix = myProcCol * localDIM + i;
     vshift(my_rank, nprocs, my_arrB, i, localDIM, colInFullMatrix, UP);
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
+MPI_Barrier(MPI_COMM_WORLD);
   
   // print shuffled matrices to verify correctness
   if(DIAGNOSTICS){
@@ -155,14 +144,20 @@ int main(int argc, char **argv) {
       printf("AFTER SHUFFLE\n");
     }
     // print_dist_mat(my_arrA, "A", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
-    print_dist_mat(my_arrB, "B", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
+    // print_dist_mat(my_arrB, "B", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
   }
 
-
-  // TODO NEXT
+// TODO: Multiply
+  // Shift all rows/cols down/right
+  for (i = 0; i < localDIM; i++){
+    hshift(my_rank, my_arrA[i], localDIM, 1, RIGHT);
+    vshift(my_rank, nprocs, my_arrB, i, localDIM, 1, DOWN);
+  }
 
   // MPI_Barrier(MPI_COMM_WORLD);
+  if(DIAGNOSTICS){
   // print_dist_mat(my_arrC, "C", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
+  }
 
 // CLEANUP
   for (int i = 0; i < localDIM; i++)
@@ -330,15 +325,20 @@ void vshift(int my_rank, int nprocs, int ** arr, int locColNum, int localDIM, in
     int fartherRank = n_ranks_v(my_rank, nprocs, blockDIM, shiftNRanks+1, direction);
     int nearerRank = n_ranks_v(my_rank, nprocs, blockDIM, shiftNRanks, direction);
 
-    MPI_Isend(send_buff, toFarther, MPI_INT, fartherRank, 2, MPI_COMM_WORLD, &req);
-    MPI_Isend(send_buff + toFarther, toNearer, MPI_INT, nearerRank, 3, MPI_COMM_WORLD, &req2);
+    int sendNearOffset = (direction == UP) ? toFarther: 0;
+    int sendFarOffset = (direction == UP) ? 0: toFarther;
+    MPI_Isend(send_buff + sendFarOffset, toFarther, MPI_INT, fartherRank, 2, MPI_COMM_WORLD, &req);
+    MPI_Isend(send_buff + sendNearOffset, toNearer, MPI_INT, nearerRank, 3, MPI_COMM_WORLD, &req2);
 
     // TODO: RECEIVE NON-BLOCKING?
     MPI_Recv(recv_buff, toFarther, MPI_INT, MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     MPI_Recv(r_buff2, toNearer, MPI_INT, MPI_ANY_SOURCE, 3, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-    buffer_to_col(recv_buff, arr, locColNum, toNearer, toFarther);
-    buffer_to_col(r_buff2, arr, locColNum, 0, toNearer);
+    int recvNearOffset = (direction == UP) ? 0: toFarther;
+    int recvFarOffset = (direction == UP) ? toNearer: 0;
+
+    buffer_to_col(recv_buff, arr, locColNum, recvFarOffset, toFarther);
+    buffer_to_col(r_buff2, arr, locColNum, recvNearOffset, toNearer);
 
     MPI_Wait(&req, MPI_STATUS_IGNORE);
     MPI_Wait(&req2, MPI_STATUS_IGNORE);
