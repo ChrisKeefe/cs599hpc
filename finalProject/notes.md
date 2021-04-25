@@ -8,3 +8,9 @@
 - Basic (single-values) cannon
 - external validation to reference impl?
 
+- Requires hadamard product, not naive MM
+- corrected wikipedia entry
+
+TODO: 
+- consolidate sending of blocks instead of rows
+- Compare to non-hadamard implementations
