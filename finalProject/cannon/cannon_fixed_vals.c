@@ -19,6 +19,7 @@ void buffer_to_col(int *recv_buff, int **arr, int col_idx, int start_row, int n_
 void col_to_buffer(int **arr, int *send_buff, int col_idx, int n_vals);
 unsigned long long int get_global_sum(unsigned long long int **arr, int dim, int my_rank);
 void hadamard_prod(int **my_arrA, int **my_arrB, unsigned long long int **my_arrC, int dim);
+void naive_multiply(int **my_arrA, int **my_arrB, int **my_arrC, int dim);
 int n_ranks_h(int my_rank, int blockDIM, int n, enum hdir direction);
 int n_ranks_v(int my_rank, int nprocs, int blockDIM, int n_vals, enum vdir direction);
 void populate_hardcoded_matrices(int **my_arrA, int **my_arrB, unsigned long long int **my_arrC, int DIM, int nprocs, int my_rank);
@@ -130,6 +131,7 @@ int main(int argc, char **argv) {
     sleep(1);
   }
 
+  // naive_multiply(my_arrA, my_arrB, my_arrC, localDIM);
   hadamard_prod(my_arrA, my_arrB, my_arrC, localDIM);
 
   // Shift matrices down/right DIM -1 times
@@ -139,6 +141,7 @@ int main(int argc, char **argv) {
       hshift(my_rank, my_arrA[j], localDIM, 1, RIGHT);
       vshift(my_rank, nprocs, my_arrB, j, localDIM, 1, DOWN);
     }
+    // naive_multiply(my_arrA, my_arrB, my_arrC, localDIM);
     hadamard_prod(my_arrA, my_arrB, my_arrC, localDIM);
   }
   
@@ -169,6 +172,14 @@ int main(int argc, char **argv) {
 // ######################      END MAIN          #######################
 // ######################      END MAIN          #######################
 // ######################      END MAIN          #######################
+
+// perform naive matrix multiplication
+void naive_multiply(int **my_arrA, int **my_arrB, int **my_arrC, int dim){
+  for (int i = 0; i < dim; i++)
+    for (int k = 0; k < dim; k++)
+      for (int j = 0; j < dim; j++)
+        my_arrC[i][j] += my_arrA[i][k] * my_arrB[k][j];
+}
 
 void hadamard_prod(int **my_arrA, int **my_arrB, unsigned long long int **my_arrC, int dim){
   unsigned long long int tmp;
