@@ -5,6 +5,7 @@ FIXED = cannon_fixed_vals
 RAND = cannon_random
 NP = 4
 DIM = 4
+# DIM = 16
 BLOCKSIZE = 1
 DIAGNOSTICS = 1
 HOST = ../myhostfile.txt

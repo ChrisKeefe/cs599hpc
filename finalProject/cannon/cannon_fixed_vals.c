@@ -17,6 +17,7 @@ enum vdir {UP, DOWN};
 // forward declarations
 void buffer_to_col(int *recv_buff, int **arr, int col_idx, int start_row, int n_vals);
 void col_to_buffer(int **arr, int *send_buff, int col_idx, int n_vals);
+int get_global_sum(int **arr, int dim, int my_rank);
 void hadamard_prod(int **my_arrA, int **my_arrB, int **my_arrC, int dim);
 int n_ranks_h(int my_rank, int blockDIM, int n, enum hdir direction);
 int n_ranks_v(int my_rank, int nprocs, int blockDIM, int n_vals, enum vdir direction);
@@ -97,7 +98,7 @@ int main(int argc, char **argv) {
     my_arrC[i]=(int*)malloc(sizeof(int) * localDIM);
   }
 
-  // populate arrays in a distributed manner
+  // populate hardcoded arrays in a distributed manner
   int a[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
   int b[16] = {2, 1, 2, 1, 1, 1, 2, 1, 2, 1, 2, 2, 1, 2, 2, 2};
   localStartIdx = myProcRow * gridRowOffset + myProcCol * gridColOffset;
@@ -109,6 +110,17 @@ int main(int argc, char **argv) {
       my_arrC[i][j] = 0;
     }
   }
+
+  // populate sequential arrays in a distributed manner
+//  localStartIdx = myProcRow * gridRowOffset + myProcCol * gridColOffset;
+//  for (i = 0; i < localDIM; i++) {
+//    for (j = 0; j < localDIM; j++) {
+//      tmp = localStartIdx + i * rowOffset + j * colOffset;
+//      my_arrA[i][j] = tmp;
+//      my_arrB[i][j] = tmp;
+//      my_arrC[i][j] = 0;
+//    }
+//  }
 
   // display matrix A by sequentially printing each block
   if(DIAGNOSTICS){
@@ -155,6 +167,11 @@ int main(int argc, char **argv) {
     print_dist_mat(my_arrC, "C", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
   }
 
+  int globSum = get_global_sum(my_arrC, localDIM, my_rank);
+  if(my_rank == 0){
+    printf("Global Sum : %d\n", globSum);
+  }
+
 // CLEANUP
   for (int i = 0; i < localDIM; i++)
   {
@@ -169,7 +186,9 @@ int main(int argc, char **argv) {
   MPI_Finalize();
   return 0;
 }
-// END MAIN
+// ######################      END MAIN          #######################
+// ######################      END MAIN          #######################
+// ######################      END MAIN          #######################
 
 void hadamard_prod(int **my_arrA, int **my_arrB, int **my_arrC, int dim){
   for (int i = 0; i < dim; i++)
@@ -198,6 +217,18 @@ void print_chunk(int **arr, int localDIM){
     printf("\n");
   }
   printf("\n");
+}
+
+int get_global_sum(int **arr, int dim, int my_rank){
+  int globSum = 0;
+  int locSum = 0;
+  for (int i = 0; i < dim; i++){
+    for (int j = 0; j < dim; j++){
+      locSum += arr[i][j];
+    }
+  }
+  MPI_Reduce(&locSum, &globSum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+  return globSum;
 }
 
 int n_ranks_h(int my_rank, int blockDIM, int n, enum hdir direction){

@@ -12,4 +12,7 @@ b = np.array([[2, 1, 2, 1],
 
 print(a)
 print(b)
-print(np.matmul(a, b))
+c = np.matmul(a, b)
+global_sum = np.sum(c)
+print(c)
+print(global_sum)

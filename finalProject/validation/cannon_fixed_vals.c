@@ -98,16 +98,29 @@ int main(int argc, char **argv) {
     my_arrC[i]=(int*)malloc(sizeof(int) * localDIM);
   }
 
-  // populate arrays in a distributed manner
+  // populate hardcoded arrays in a distributed manner
+  int a[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+  int b[16] = {2, 1, 2, 1, 1, 1, 2, 1, 2, 1, 2, 2, 1, 2, 2, 2};
   localStartIdx = myProcRow * gridRowOffset + myProcCol * gridColOffset;
   for (i = 0; i < localDIM; i++) {
     for (j = 0; j < localDIM; j++) {
       tmp = localStartIdx + i * rowOffset + j * colOffset;
-      my_arrA[i][j] = tmp;
-      my_arrB[i][j] = tmp;
+      my_arrA[i][j] = a[tmp];
+      my_arrB[i][j] = b[tmp];
       my_arrC[i][j] = 0;
     }
   }
+
+  // populate sequential arrays in a distributed manner
+//  localStartIdx = myProcRow * gridRowOffset + myProcCol * gridColOffset;
+//  for (i = 0; i < localDIM; i++) {
+//    for (j = 0; j < localDIM; j++) {
+//      tmp = localStartIdx + i * rowOffset + j * colOffset;
+//      my_arrA[i][j] = tmp;
+//      my_arrB[i][j] = tmp;
+//      my_arrC[i][j] = 0;
+//    }
+//  }
 
   // display matrix A by sequentially printing each block
   if(DIAGNOSTICS){
@@ -152,10 +165,11 @@ int main(int argc, char **argv) {
   if(DIAGNOSTICS){
     MPI_Barrier(MPI_COMM_WORLD);
     print_dist_mat(my_arrC, "C", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
-    int globSum = get_global_sum(my_arrC, localDIM, my_rank);
-    if(my_rank == 0){
-      printf("Global Sum : %d\n", globSum);
-    }
+  }
+
+  int globSum = get_global_sum(my_arrC, localDIM, my_rank);
+  if(my_rank == 0){
+    printf("Global Sum : %d\n", globSum);
   }
 
 // CLEANUP
