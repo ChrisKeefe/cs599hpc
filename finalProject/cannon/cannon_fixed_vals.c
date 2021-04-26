@@ -122,11 +122,15 @@ int main(int argc, char **argv) {
 
   // Print A and B post-shuffle
   if(DIAGNOSTICS == 2){
+    if (my_rank == 0){printf("### POST SHUFFLE ###\n");}
     MPI_Barrier(MPI_COMM_WORLD);
     print_dist_mat(my_arrA, "A", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
     MPI_Barrier(MPI_COMM_WORLD);
     sleep(1);
     print_dist_mat(my_arrB, "B", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
+    sleep(1);
+    print_dist_mat_ul(my_arrC, "C", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
     MPI_Barrier(MPI_COMM_WORLD);
     sleep(1);
   }
@@ -136,6 +140,24 @@ int main(int argc, char **argv) {
 
   // Shift matrices down/right DIM -1 times
   for (i = 0; i < DIM - 1; i++){
+
+            // Print A and B first mult
+            if(DIAGNOSTICS == 2){
+              if (my_rank == 0){
+                printf("### AFTER MULTIPY # %d ###\n", i + 1);
+              }
+              MPI_Barrier(MPI_COMM_WORLD);
+              print_dist_mat(my_arrA, "A", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
+              MPI_Barrier(MPI_COMM_WORLD);
+              sleep(1);
+              print_dist_mat(my_arrB, "B", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
+              MPI_Barrier(MPI_COMM_WORLD);
+              sleep(1);
+              print_dist_mat_ul(my_arrC, "C", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
+              MPI_Barrier(MPI_COMM_WORLD);
+              sleep(1);
+            }
+
     // shift each row/col
     for (j = 0; j < localDIM; j++){
       hshift(my_rank, my_arrA[j], localDIM, 1, RIGHT);
@@ -145,7 +167,7 @@ int main(int argc, char **argv) {
     hadamard_prod(my_arrA, my_arrB, my_arrC, localDIM);
   }
   
-  if(DIAGNOSTICS = 2){
+  if(DIAGNOSTICS){
     MPI_Barrier(MPI_COMM_WORLD);
     print_dist_mat_ul(my_arrC, "C", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
   }

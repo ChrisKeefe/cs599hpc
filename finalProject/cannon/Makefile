@@ -6,7 +6,8 @@ RAND = cannon_random
 NP = 4
 DIM = 6
 BLOCKSIZE = 1
-DIAGNOSTICS = 1
+DIAGNOSTICS = 2
+# DIAGNOSTICS = 1
 HOST = ../myhostfile.txt
 
 .phony = clean run test time fixed rand
