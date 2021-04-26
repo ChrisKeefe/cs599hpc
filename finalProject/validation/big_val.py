@@ -5,7 +5,7 @@ import numpy as np
 #                 [0, 1, 2, 3],
 #                 [0, 1, 2, 3]]
 
-dim = 4
+dim = 6
 if(False):
     a = np.arange(0, dim, 1)
     a = np.tile(a, (dim, 1))
