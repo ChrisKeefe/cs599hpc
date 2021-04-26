@@ -21,6 +21,8 @@ unsigned long long int get_global_sum(unsigned long long int **arr, int dim, int
 void hadamard_prod(int **my_arrA, int **my_arrB, unsigned long long int **my_arrC, int dim);
 int n_ranks_h(int my_rank, int blockDIM, int n, enum hdir direction);
 int n_ranks_v(int my_rank, int nprocs, int blockDIM, int n_vals, enum vdir direction);
+void populate_hardcoded_matrices(int **my_arrA, int **my_arrB, unsigned long long int **my_arrC, int DIM, int nprocs, int my_rank);
+void populate_sequential_matrices(int **my_arrA, int **my_arrB, unsigned long long int **my_arrC, int DIM, int nprocs, int my_rank);
 void print_chunk(int **arr, int localDIM);
 void print_chunk_ul(unsigned long long int **arr, int localDIM);
 void print_dist_mat(int **arr, const char *name, int localDIM, int nprocs, int my_rank, MPI_Comm world);
@@ -29,9 +31,8 @@ void vshift(int my_rank, int nprocs, int ** arr, int locColNum, int localDIM, in
 void hshift(int my_rank, int *arr_row, int localDIM, int nPositions, enum hdir direction);
 
 int main(int argc, char **argv) {
-  int my_rank, nprocs, N, localN, localDIM, blockDIM, rowOffset, colOffset;
-  int myProcRow, myProcCol, localStartIdx, gridRowOffset, gridColOffset;
-  int i, j, k, tmp, print_rank;
+  int my_rank, nprocs, N, localN, localDIM, blockDIM, myProcRow, myProcCol;
+  int i, j, k, tmp;
   double start_time, end_time;
 
   // Initialize MPI
@@ -49,7 +50,7 @@ int main(int argc, char **argv) {
 
   //Process command-line arguments
   if (argc != 4) {
-    fprintf(stderr,"Please provide the following args: DIM (matrix dimensionality), the BLOCKSIZE at which component submatrices will be multiplied (hadamard), and a 1/0 diagnostic print flag.");
+    fprintf(stderr,"Please provide the following args: DIM (matrix dimensionality), the BLOCKSIZE at which component submatrices will be multiplied (hadamard), and a diagnostic print flag.");
     MPI_Finalize();
     exit(0);
   }
@@ -58,7 +59,7 @@ int main(int argc, char **argv) {
   // BLOCKSIZE is the side-length of the smallest unit of multiplication
   // i.e. a cache-sized matrix which will be multiplied by hadamard product
   sscanf(argv[2], "%d", &BLOCKSIZE);
-  sscanf(argv[3],"%d",&DIAGNOSTICS);
+  sscanf(argv[3],"%d", &DIAGNOSTICS);
 
   // Determine the dimensions of the data for each rank:
   // The number of elements of the matrix
@@ -67,12 +68,6 @@ int main(int argc, char **argv) {
   localN = N / nprocs;
   // The dimensionality of each rank's chunk of the matrix
   localDIM = sqrt(localN);
-
-  rowOffset = DIM;
-  colOffset = 1;
-  // TODO: remove?
-  gridRowOffset = rowOffset * localDIM;
-  gridColOffset = colOffset * localDIM;
 
   // the number of blocks on one axis of the matrix
   blockDIM = DIM / localDIM;
@@ -88,7 +83,6 @@ int main(int argc, char **argv) {
   }
 
   // Allocate Arrays
-  // pointer to local subsets of the data
   int **my_arrA = (int **)malloc(sizeof(int *) * localDIM);
   int **my_arrB = (int **)malloc(sizeof(int *) * localDIM);
   unsigned long long int **my_arrC = (unsigned long long int **)malloc(sizeof(unsigned long long int *) * localDIM);
@@ -100,31 +94,9 @@ int main(int argc, char **argv) {
     my_arrC[i]=(unsigned long long int*)malloc(sizeof(unsigned long long int) * localDIM);
   }
 
-  // populate hardcoded arrays in a distributed manner
-//  int a[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
-//  int b[16] = {2, 1, 2, 1, 1, 1, 2, 1, 2, 1, 2, 2, 1, 2, 2, 2};
-//  localStartIdx = myProcRow * gridRowOffset + myProcCol * gridColOffset;
-//  for (i = 0; i < localDIM; i++) {
-//    for (j = 0; j < localDIM; j++) {
-//      tmp = localStartIdx + i * rowOffset + j * colOffset;
-//      my_arrA[i][j] = a[tmp];
-//      my_arrB[i][j] = b[tmp];
-//      my_arrC[i][j] = 0;
-//    }
-//  }
+  // populate_hardcoded_matrices(my_arrA, my_arrB, my_arrC, DIM, nprocs, my_rank);
+  populate_sequential_matrices(my_arrA, my_arrB, my_arrC, DIM, nprocs, my_rank);
 
-  // populate sequential arrays in a distributed manner
-  localStartIdx = myProcRow * gridRowOffset + myProcCol * gridColOffset;
-  for (i = 0; i < localDIM; i++) {
-    for (j = 0; j < localDIM; j++) {
-      tmp = localStartIdx + i * rowOffset + j * colOffset;
-      my_arrA[i][j] = tmp;
-      my_arrB[i][j] = tmp;
-      my_arrC[i][j] = 0;
-    }
-  }
-
-  // display matrix A by sequentially printing each block
   if(DIAGNOSTICS){
     print_dist_mat(my_arrA, "A", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
     MPI_Barrier(MPI_COMM_WORLD);
@@ -134,7 +106,7 @@ int main(int argc, char **argv) {
     sleep(1);
   }
   
-  // BEGIN CANNON CODE
+  // ### END SETUP / BEGIN CANNON CODE ###
   // Initial matrix shuffle
   for (i = 0; i < localDIM; i++){
     // Shift row A[x] (in the full matrix) left x rows, so we need to map
@@ -147,7 +119,13 @@ int main(int argc, char **argv) {
     vshift(my_rank, nprocs, my_arrB, i, localDIM, colInFullMatrix, UP);
   }
 
-  if(DIAGNOSTICS){
+  // Print A and B post-shuffle
+  if(DIAGNOSTICS == 2){
+    MPI_Barrier(MPI_COMM_WORLD);
+    print_dist_mat(my_arrA, "A", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
+    sleep(1);
+    print_dist_mat(my_arrB, "B", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
     MPI_Barrier(MPI_COMM_WORLD);
     sleep(1);
   }
@@ -164,7 +142,7 @@ int main(int argc, char **argv) {
     hadamard_prod(my_arrA, my_arrB, my_arrC, localDIM);
   }
   
-  if(DIAGNOSTICS){
+  if(DIAGNOSTICS = 2){
     MPI_Barrier(MPI_COMM_WORLD);
     print_dist_mat_ul(my_arrC, "C", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
   }
@@ -361,7 +339,7 @@ void vshift(int my_rank, int nprocs, int ** arr, int locColNum, int localDIM, in
   int *send_buff = (int *)malloc(localDIM * sizeof(int));
   int *recv_buff = (int *)malloc(localDIM * sizeof(int));
   int blockDIM = DIM / localDIM;
-  int myProcCol = my_rank / blockDIM;
+  int myProcCol = my_rank % blockDIM;
 
   col_to_buffer(arr, send_buff, locColNum, localDIM);
   int sendIsSplit = nPositions % localDIM;
@@ -404,4 +382,78 @@ void vshift(int my_rank, int nprocs, int ** arr, int locColNum, int localDIM, in
   }
   free(send_buff);
   free(recv_buff);
+}
+
+void populate_hardcoded_matrices(int **my_arrA, int **my_arrB, unsigned long long int **my_arrC, int DIM, int nprocs, int my_rank){
+  // Zeroes C, and populates arrs A & B with sequence of integers hardcoded here
+  // eg. array [[2, 1, 2, 1],
+  //            [1, 1, 2, 1],
+  //            [2, ...    ],
+  //            [...,     2]]
+  int N = DIM * DIM;
+  int localN = N / nprocs;
+  int localDIM = sqrt(localN);
+  int blockDIM = DIM / localDIM;
+  int myProcRow = my_rank / blockDIM;
+  int myProcCol = my_rank % blockDIM;
+
+  int rowOffset = DIM;
+  int colOffset = 1;
+  int gridRowOffset = rowOffset * localDIM;
+  int gridColOffset = colOffset * localDIM;
+
+  int localStartIdx = myProcRow * gridRowOffset + myProcCol * gridColOffset;
+
+  if(my_rank == 0 && DIM != 4){
+    printf("ERROR: populate_hardcoded_matrices expects a 4x4 matrix. DIM passed: %d.\n", DIM);
+    MPI_Finalize();
+    exit(0);
+  }
+ 
+  if(my_rank == 0 && localDIM * localDIM * nprocs != 16){
+    printf("ERROR: Number of values != 16. Check DIM and NPROCS.\n");
+    MPI_Finalize(); 
+    exit(0);
+  }
+  
+  int a[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+  int b[16] = {2, 1, 2, 1, 1, 1, 2, 1, 2, 1, 2, 2, 1, 2, 2, 2};
+  for (int i = 0; i < localDIM; i++) {
+    for (int j = 0; j < localDIM; j++) {
+      int tmp = localStartIdx + i * rowOffset + j * colOffset;
+      my_arrA[i][j] = a[tmp];
+      my_arrB[i][j] = b[tmp];
+      my_arrC[i][j] = 0;
+    }
+  }
+}
+
+void populate_sequential_matrices(int **my_arrA, int **my_arrB, unsigned long long int **my_arrC, int DIM, int nprocs, int my_rank){
+  // Zeroes C, and populates arrs A & B with sequence of integers from (0.. localDIM * localDIM - 1), as below.
+  // eg. array [[0, 1, 2, 3],
+  //            [4, 5, 6, 7],
+  //            [8, ...
+  //            [...,    15]]
+  int N = DIM * DIM;
+  int localN = N / nprocs;
+  int localDIM = sqrt(localN);
+  int blockDIM = DIM / localDIM;
+
+  int myProcRow = my_rank / blockDIM;
+  int myProcCol = my_rank % blockDIM;
+  int rowOffset = DIM;
+  int colOffset = 1;
+  int gridRowOffset = rowOffset * localDIM;
+  int gridColOffset = colOffset * localDIM;
+
+  int localStartIdx = myProcRow * gridRowOffset + myProcCol * gridColOffset;
+
+  for (int i = 0; i < localDIM; i++) {
+    for (int j = 0; j < localDIM; j++) {
+      int tmp = localStartIdx + i * rowOffset + j * colOffset;
+      my_arrA[i][j] = tmp;
+      my_arrB[i][j] = tmp;
+      my_arrC[i][j] = 0;
+    }
+  }
 }
