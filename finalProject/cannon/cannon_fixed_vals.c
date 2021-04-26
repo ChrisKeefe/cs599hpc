@@ -17,12 +17,14 @@ enum vdir {UP, DOWN};
 // forward declarations
 void buffer_to_col(int *recv_buff, int **arr, int col_idx, int start_row, int n_vals);
 void col_to_buffer(int **arr, int *send_buff, int col_idx, int n_vals);
-int get_global_sum(int **arr, int dim, int my_rank);
-void hadamard_prod(int **my_arrA, int **my_arrB, int **my_arrC, int dim);
+unsigned long long int get_global_sum(unsigned long long int **arr, int dim, int my_rank);
+void hadamard_prod(int **my_arrA, int **my_arrB, unsigned long long int **my_arrC, int dim);
 int n_ranks_h(int my_rank, int blockDIM, int n, enum hdir direction);
 int n_ranks_v(int my_rank, int nprocs, int blockDIM, int n_vals, enum vdir direction);
 void print_chunk(int **arr, int localDIM);
+void print_chunk_ul(unsigned long long int **arr, int localDIM);
 void print_dist_mat(int **arr, const char *name, int localDIM, int nprocs, int my_rank, MPI_Comm world);
+void print_dist_mat_ul(unsigned long long int **arr, const char *name, int localDIM, int nprocs, int my_rank, MPI_Comm world);
 void vshift(int my_rank, int nprocs, int ** arr, int locColNum, int localDIM, int nPositions, enum vdir direction);
 void hshift(int my_rank, int *arr_row, int localDIM, int nPositions, enum hdir direction);
 
@@ -89,38 +91,38 @@ int main(int argc, char **argv) {
   // pointer to local subsets of the data
   int **my_arrA = (int **)malloc(sizeof(int *) * localDIM);
   int **my_arrB = (int **)malloc(sizeof(int *) * localDIM);
-  int **my_arrC = (int **)malloc(sizeof(int *) * localDIM);
+  unsigned long long int **my_arrC = (unsigned long long int **)malloc(sizeof(unsigned long long int *) * localDIM);
 
   for (int i=0; i<localDIM; i++)
   {
     my_arrA[i]=(int*)malloc(sizeof(int) * localDIM);
     my_arrB[i]=(int*)malloc(sizeof(int) * localDIM);
-    my_arrC[i]=(int*)malloc(sizeof(int) * localDIM);
+    my_arrC[i]=(unsigned long long int*)malloc(sizeof(unsigned long long int) * localDIM);
   }
 
   // populate hardcoded arrays in a distributed manner
-  int a[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
-  int b[16] = {2, 1, 2, 1, 1, 1, 2, 1, 2, 1, 2, 2, 1, 2, 2, 2};
-  localStartIdx = myProcRow * gridRowOffset + myProcCol * gridColOffset;
-  for (i = 0; i < localDIM; i++) {
-    for (j = 0; j < localDIM; j++) {
-      tmp = localStartIdx + i * rowOffset + j * colOffset;
-      my_arrA[i][j] = a[tmp];
-      my_arrB[i][j] = b[tmp];
-      my_arrC[i][j] = 0;
-    }
-  }
-
-  // populate sequential arrays in a distributed manner
+//  int a[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+//  int b[16] = {2, 1, 2, 1, 1, 1, 2, 1, 2, 1, 2, 2, 1, 2, 2, 2};
 //  localStartIdx = myProcRow * gridRowOffset + myProcCol * gridColOffset;
 //  for (i = 0; i < localDIM; i++) {
 //    for (j = 0; j < localDIM; j++) {
 //      tmp = localStartIdx + i * rowOffset + j * colOffset;
-//      my_arrA[i][j] = tmp;
-//      my_arrB[i][j] = tmp;
+//      my_arrA[i][j] = a[tmp];
+//      my_arrB[i][j] = b[tmp];
 //      my_arrC[i][j] = 0;
 //    }
 //  }
+
+  // populate sequential arrays in a distributed manner
+  localStartIdx = myProcRow * gridRowOffset + myProcCol * gridColOffset;
+  for (i = 0; i < localDIM; i++) {
+    for (j = 0; j < localDIM; j++) {
+      tmp = localStartIdx + i * rowOffset + j * colOffset;
+      my_arrA[i][j] = tmp;
+      my_arrB[i][j] = tmp;
+      my_arrC[i][j] = 0;
+    }
+  }
 
   // display matrix A by sequentially printing each block
   if(DIAGNOSTICS){
@@ -164,12 +166,12 @@ int main(int argc, char **argv) {
   
   if(DIAGNOSTICS){
     MPI_Barrier(MPI_COMM_WORLD);
-    print_dist_mat(my_arrC, "C", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
+    print_dist_mat_ul(my_arrC, "C", localDIM, nprocs, my_rank, MPI_COMM_WORLD);
   }
 
-  int globSum = get_global_sum(my_arrC, localDIM, my_rank);
+  unsigned long long int globSum = get_global_sum(my_arrC, localDIM, my_rank);
   if(my_rank == 0){
-    printf("Global Sum : %d\n", globSum);
+    printf("Global Sum : %llu\n", globSum);
   }
 
 // CLEANUP
@@ -190,10 +192,39 @@ int main(int argc, char **argv) {
 // ######################      END MAIN          #######################
 // ######################      END MAIN          #######################
 
-void hadamard_prod(int **my_arrA, int **my_arrB, int **my_arrC, int dim){
-  for (int i = 0; i < dim; i++)
-      for (int j = 0; j < dim; j++)
-        my_arrC[i][j] += my_arrA[i][j] * my_arrB[i][j];
+void hadamard_prod(int **my_arrA, int **my_arrB, unsigned long long int **my_arrC, int dim){
+  unsigned long long int tmp;
+  for (int i = 0; i < dim; i++){
+    for (int j = 0; j < dim; j++){
+      tmp = my_arrA[i][j] * my_arrB[i][j];
+      if(tmp < 0){
+        printf("ERROR: product overflow\n");
+        MPI_Finalize();
+        exit(0);
+      }
+      my_arrC[i][j] += tmp;
+    }
+  }
+}
+
+void print_chunk(int **arr, int localDIM){
+  for (int i = 0; i < localDIM; i++){
+    for (int k = 0; k < localDIM; k++){
+      printf("%-12d ", arr[i][k]);
+    }
+    printf("\n");
+  }
+  printf("\n");
+}
+
+void print_chunk_ul(unsigned long long int **arr, int localDIM){
+  for (int i = 0; i < localDIM; i++){
+    for (int k = 0; k < localDIM; k++){
+      printf("%-12llu ", arr[i][k]);
+    }
+    printf("\n");
+  }
+  printf("\n");
 }
 
 void print_dist_mat(int **arr, const char *name, int localDIM, int nprocs, int my_rank, MPI_Comm world){
@@ -209,25 +240,28 @@ void print_dist_mat(int **arr, const char *name, int localDIM, int nprocs, int m
   }
 }
 
-void print_chunk(int **arr, int localDIM){
-  for (int i = 0; i < localDIM; i++){
-    for (int k = 0; k < localDIM; k++){
-      printf("%-12d ", arr[i][k]);
+void print_dist_mat_ul(unsigned long long int **arr, const char *name, int localDIM, int nprocs, int my_rank, MPI_Comm world){
+  if(my_rank == 0) printf("\n### Matrix %s ###\n", name);
+  int print_rank = 0;
+  for (int i = 0; i < nprocs; i++){
+    if (my_rank == print_rank){
+      printf("Rank: %llu\n", my_rank);
+      print_chunk_ul(arr, localDIM);
     }
-    printf("\n");
+    print_rank++;
+    MPI_Barrier(world);
   }
-  printf("\n");
 }
 
-int get_global_sum(int **arr, int dim, int my_rank){
-  int globSum = 0;
-  int locSum = 0;
+unsigned long long int get_global_sum(unsigned long long int **arr, int dim, int my_rank){
+  unsigned long long int globSum = 0;
+  unsigned long long int locSum = 0;
   for (int i = 0; i < dim; i++){
     for (int j = 0; j < dim; j++){
       locSum += arr[i][j];
     }
   }
-  MPI_Reduce(&locSum, &globSum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+  MPI_Reduce(&locSum, &globSum, 1, MPI_UNSIGNED_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
   return globSum;
 }
 
