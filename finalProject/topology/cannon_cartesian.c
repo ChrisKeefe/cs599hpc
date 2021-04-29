@@ -25,7 +25,7 @@ void print_dist_mat_ul(unsigned long long int *arr, const char *name, int localD
 int main(int argc, char **argv) {
   int my_rank, nprocs, N, localN, localDIM;
   int my_cart_rank, src, dest, left, right, up, down, my_coords[N_PROC_DIMS];
-  double start_time, end_time;
+  double start_time, end_time, elapsed_time, gl_elapsed;
 
   // Initialize MPI
   MPI_Init(&argc,&argv);
@@ -112,7 +112,10 @@ int main(int argc, char **argv) {
     MPI_Barrier(comm_cart);
     sleep(1);
   }
-  
+
+  /* #########################  Start Timer  ################################ */
+  start_time = MPI_Wtime();
+
   /* ######################  Pre-Shift Arrays  ############################## */
   // Each rank must get both source and destination ranks for MPI_Send_recv
   // MPI_Cart_shift can deduce these from our cartesian communicator and some params
@@ -162,6 +165,16 @@ int main(int argc, char **argv) {
     MPI_Barrier(comm_cart);
     sleep(1);
   }
+
+  /* #######################  Calculate Timing ############################## */
+  end_time = MPI_Wtime();
+  elapsed_time = end_time - start_time;
+  MPI_Reduce(&elapsed_time, &gl_elapsed, 1, MPI_DOUBLE, MPI_MAX, 0, comm_cart);
+ 
+   if(my_rank == 0){
+    printf("Global Max Elapsed Time: %lf\n", gl_elapsed);
+  }
+ 
 
   /* #####################  Get/Print Global Sum  ########################### */
   unsigned long long int globSum = get_global_sum(my_arrC, localDIM, my_rank);
