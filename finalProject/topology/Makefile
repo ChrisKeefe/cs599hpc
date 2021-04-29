@@ -4,8 +4,7 @@ LFLAGS = -lm
 FIXED = cannon_cartesian
 RAND = cannon_random
 NP = 4
-DIM = 6
-# BLOCKSIZE = 1
+DIM = 128
 DIAGNOSTICS = 0
 HOST = ../myhostfile.txt
 
