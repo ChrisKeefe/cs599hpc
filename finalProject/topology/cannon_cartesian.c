@@ -6,17 +6,12 @@
 
 // This implementation of Cannon's algorithm uses a 2D torus topology
 #define N_PROC_DIMS 2
-// TODO: Does this need to go?
-// #define N 16
 
 // declare global config variables
 int DIM;
 int DIAGNOSTICS;
-int BLOCKSIZE;
 
 enum dim {COL, ROW};
-enum hdir {LEFT, RIGHT};
-enum vdir {UP, DOWN};
 
 // Forward Declarations
 unsigned long long int get_global_sum(unsigned long long int *arr, int dim, int my_rank);
@@ -26,13 +21,10 @@ void print_chunk(int *arr, int localDIM);
 void print_chunk_ul(unsigned long long int *arr, int localDIM);
 void print_dist_mat(int *arr, const char *name, int localDIM, int nprocs, int my_rank, MPI_Comm world);
 void print_dist_mat_ul(unsigned long long int *arr, const char *name, int localDIM, int nprocs, int my_rank, MPI_Comm world);
-// void vshift(int my_rank, int nprocs, int ** arr, int locColNum, int localDIM, int nPositions, enum vdir direction);
-// void hshift(int my_rank, int *arr_row, int localDIM, int nPositions, enum hdir direction);
 
 int main(int argc, char **argv) {
-  int i, j, k, tmp;
-  int my_rank, nprocs, my_cart_rank, src, dest, left, right, up, down, my_coords[N_PROC_DIMS];
-  int N, localN, localDIM, blockDIM, myProcRow, myProcCol;
+  int my_rank, nprocs, N, localN, localDIM;
+  int my_cart_rank, src, dest, left, right, up, down, my_coords[N_PROC_DIMS];
   double start_time, end_time;
 
   // Initialize MPI
@@ -41,6 +33,7 @@ int main(int argc, char **argv) {
   MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
   
   /* ########### Read in CL Args, checking algorithm assumptions ############ */
+  // Check if nprocs is square:
   float nprocs_per_dim = sqrt(nprocs);
   if (nprocs_per_dim != (int) nprocs_per_dim)
   {
@@ -51,6 +44,7 @@ int main(int argc, char **argv) {
     exit(0);
   }
 
+  // Do we have the right number of args?
   if (argc != 3) {
     if(my_rank == 0){
       fprintf(stderr,"\nERROR: Please provide the following args: DIM (matrix dimensionality), and a diagnostic print flag.");
@@ -63,6 +57,7 @@ int main(int argc, char **argv) {
   sscanf(argv[1],"%d",&DIM);
   sscanf(argv[2],"%d", &DIAGNOSTICS);
 
+  // Our matrices must have at least 1 value in them.
   if (DIM < 1)
   {
     if(my_rank == 0){
@@ -73,6 +68,7 @@ int main(int argc, char **argv) {
   }
 
   /* ####################   Create rank topology ############################ */
+  // We can create a topology-aware communicator, and use it to simplify comms code
   MPI_Comm comm_cart;
   int proc_dims[N_PROC_DIMS] = {nprocs_per_dim, nprocs_per_dim};
   // We want both x and y dimensions to be periodic (i.e. to wrap), so [True, True]
@@ -87,7 +83,6 @@ int main(int argc, char **argv) {
   MPI_Comm_rank(comm_cart, &my_cart_rank);
   // Get the 2D coordinates of this rank
   MPI_Cart_coords(comm_cart, my_cart_rank, N_PROC_DIMS, my_coords);
-  // printf("r: %d, row: %d, col: %d\n", my_cart_rank, my_coords[0], my_coords[1]);
 
   /* ######### Determine the dimensions of the data for each rank: ###########*/
   // N: The total number of elements of the matrix
@@ -96,13 +91,6 @@ int main(int argc, char **argv) {
   localN = N / nprocs;
   // The side length of each rank's submatrix
   localDIM = sqrt(localN);
-
-  // TODO: Remove
-  // the number of submatrices on one axis of the matrix
-  // blockDIM = DIM / localDIM;
-  // coordinates of my rank in our matrix of processors
-  // myProcRow = my_rank / blockDIM;
-  // myProcCol = my_rank % blockDIM;
 
   /* ######################   Allocate Arrays   ############################# */
   /*      Move to 1d arrays, to better align with per-subarray sending        */
@@ -132,11 +120,9 @@ int main(int argc, char **argv) {
   MPI_Status status;
 
   MPI_Cart_shift(comm_cart, ROW, -my_coords[COL], &src, &dest);
-  // printf("r: %d shift: %d src: %d dest: %d\n", my_cart_rank, -my_coords[COL], src, dest);
   MPI_Sendrecv_replace(my_arrA, localN, MPI_INT, dest, 0, src, 0, comm_cart, &status);
 
   MPI_Cart_shift(comm_cart, COL, -my_coords[ROW], &src, &dest);
-  // printf("r: %d coords: %d src: %d dest: %d\n", my_cart_rank, -my_coords[ROW], src, dest);
   MPI_Sendrecv_replace(my_arrB, localN, MPI_INT, dest, 1, src, 1, comm_cart, &status);
 
   if(DIAGNOSTICS){
@@ -158,7 +144,7 @@ int main(int argc, char **argv) {
   MPI_Cart_shift(comm_cart, ROW, 1, &left, &right);
   MPI_Cart_shift(comm_cart, COL, 1, &up, &down);
 
-  for (i = 0; i < nprocs_per_dim - 1; i++){
+  for (int i = 0; i < nprocs_per_dim - 1; i++){
     // Shift matrices down/right
     MPI_Sendrecv_replace(my_arrA, localN, MPI_INT, right, 0, left, 0, comm_cart, &status);
     MPI_Sendrecv_replace(my_arrB, localN, MPI_INT, down, 1, up, 1, comm_cart, &status);
