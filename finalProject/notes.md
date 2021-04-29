@@ -10,7 +10,14 @@
 
 - Requires hadamard product, not naive MM
 - corrected wikipedia entry
+- Hadamard works at small scales, but does not scale up
+
+Actually, we need to shift blocks at the same scale at which we multiply them.
+In other words, scalar multiplication goes alongside row/col-wise shifts, as initially implemented,
+but naive block multiplication must be paired with block-wise shifts. 
 
 TODO: 
 - consolidate sending of blocks instead of rows
 - Compare to non-hadamard implementations
+
+If we were going to continue working with matrices a and b after multiplication, we would need to return them to the original position (1 additional shift?)

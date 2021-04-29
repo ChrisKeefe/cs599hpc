@@ -19,6 +19,8 @@ enum hdir {LEFT, RIGHT};
 enum vdir {UP, DOWN};
 
 // Forward Declarations
+unsigned long long int get_global_sum(unsigned long long int *arr, int dim, int my_rank);
+void naive_multiply(int *my_arrA, int *my_arrB, unsigned long long int *my_arrC, int dim);
 void populate_sequential_matrices(int *my_arrA, int *my_arrB, unsigned long long int *my_arrC, int DIM, int nprocs, int my_rank);
 void print_chunk(int *arr, int localDIM);
 void print_chunk_ul(unsigned long long int *arr, int localDIM);
@@ -29,7 +31,7 @@ void print_dist_mat_ul(unsigned long long int *arr, const char *name, int localD
 
 int main(int argc, char **argv) {
   int i, j, k, tmp;
-  int my_rank, nprocs, my_cart_rank, src, dest, my_coords[N_PROC_DIMS];
+  int my_rank, nprocs, my_cart_rank, src, dest, left, right, up, down, my_coords[N_PROC_DIMS];
   int N, localN, localDIM, blockDIM, myProcRow, myProcCol;
   double start_time, end_time;
 
@@ -149,16 +151,69 @@ int main(int argc, char **argv) {
     sleep(1);
   }
 
+  /* ######################  Multiply and Shift ############################# */
+  naive_multiply(my_arrA, my_arrB, my_arrC, localDIM);
+
+  // Get left and right ranks _once_ for use in loop
+  MPI_Cart_shift(comm_cart, ROW, 1, &left, &right);
+  MPI_Cart_shift(comm_cart, COL, 1, &up, &down);
+
+  for (i = 0; i < nprocs_per_dim - 1; i++){
+    // Shift matrices down/right
+    MPI_Sendrecv_replace(my_arrA, localN, MPI_INT, right, 0, left, 0, comm_cart, &status);
+    MPI_Sendrecv_replace(my_arrB, localN, MPI_INT, down, 1, up, 1, comm_cart, &status);
+    naive_multiply(my_arrA, my_arrB, my_arrC, localDIM);
+  }
+
+  if(DIAGNOSTICS){
+    print_dist_mat(my_arrA, "A", localDIM, nprocs, my_rank, comm_cart);
+    MPI_Barrier(comm_cart);
+    sleep(1);
+    print_dist_mat(my_arrB, "B", localDIM, nprocs, my_rank, comm_cart);
+    MPI_Barrier(comm_cart);
+    sleep(1);
+    print_dist_mat_ul(my_arrC, "C", localDIM, nprocs, my_rank, comm_cart);
+    MPI_Barrier(comm_cart);
+    sleep(1);
+  }
+
+  /* #####################  Get/Print Global Sum  ########################### */
+  unsigned long long int globSum = get_global_sum(my_arrC, localDIM, my_rank);
+  if(my_rank == 0){
+    printf("Global Sum : %llu\n", globSum);
+  }
+
   /* ###########################  Cleanup  ################################## */
   free(my_arrA);
   free(my_arrB);
   free(my_arrC);
 
-  // Frees our locally-created topology-aware communicator
+  // Frees our topology-aware communicator
   MPI_Comm_free(&comm_cart);
 
   MPI_Finalize();
   return 0;
+}
+
+unsigned long long int get_global_sum(unsigned long long int *arr, int dim, int my_rank){
+  unsigned long long int globSum = 0;
+  unsigned long long int locSum = 0;
+  for (int i = 0; i < dim * dim; i++){
+      locSum += arr[i];
+  }
+  // NOTE: We can use MPI_COMM_WORLD here without having to pass a COMM in
+  // This is fragile, potentially breaking if our topologically aware
+  // comm has a different number of ranks than COMM_WORLD
+  MPI_Reduce(&locSum, &globSum, 1, MPI_UNSIGNED_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+  return globSum;
+}
+
+// perform naive matrix multiplication
+void naive_multiply(int *my_arrA, int *my_arrB, unsigned long long int *my_arrC, int dim){
+  for (int i = 0; i < dim; i++)
+    for (int k = 0; k < dim; k++)
+      for (int j = 0; j < dim; j++)
+        my_arrC[i * dim + j] += my_arrA[i * dim + k] * my_arrB[k * dim + j];
 }
 
 void populate_sequential_matrices(int *my_arrA, int *my_arrB, unsigned long long int *my_arrC, int DIM, int nprocs, int my_rank){
