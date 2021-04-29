@@ -14,16 +14,22 @@ int DIM;
 int DIAGNOSTICS;
 int BLOCKSIZE;
 
+enum dim {COL, ROW};
+enum hdir {LEFT, RIGHT};
+enum vdir {UP, DOWN};
+
 // Forward Declarations
 void populate_sequential_matrices(int *my_arrA, int *my_arrB, unsigned long long int *my_arrC, int DIM, int nprocs, int my_rank);
 void print_chunk(int *arr, int localDIM);
 void print_chunk_ul(unsigned long long int *arr, int localDIM);
 void print_dist_mat(int *arr, const char *name, int localDIM, int nprocs, int my_rank, MPI_Comm world);
 void print_dist_mat_ul(unsigned long long int *arr, const char *name, int localDIM, int nprocs, int my_rank, MPI_Comm world);
+// void vshift(int my_rank, int nprocs, int ** arr, int locColNum, int localDIM, int nPositions, enum vdir direction);
+// void hshift(int my_rank, int *arr_row, int localDIM, int nPositions, enum hdir direction);
 
 int main(int argc, char **argv) {
   int i, j, k, tmp;
-  int my_rank, nprocs, my_cart_rank, my_coords[N_PROC_DIMS];
+  int my_rank, nprocs, my_cart_rank, src, dest, my_coords[N_PROC_DIMS];
   int N, localN, localDIM, blockDIM, myProcRow, myProcCol;
   double start_time, end_time;
 
@@ -79,6 +85,7 @@ int main(int argc, char **argv) {
   MPI_Comm_rank(comm_cart, &my_cart_rank);
   // Get the 2D coordinates of this rank
   MPI_Cart_coords(comm_cart, my_cart_rank, N_PROC_DIMS, my_coords);
+  // printf("r: %d, row: %d, col: %d\n", my_cart_rank, my_coords[0], my_coords[1]);
 
   /* ######### Determine the dimensions of the data for each rank: ###########*/
   // N: The total number of elements of the matrix
@@ -87,11 +94,13 @@ int main(int argc, char **argv) {
   localN = N / nprocs;
   // The side length of each rank's submatrix
   localDIM = sqrt(localN);
+
+  // TODO: Remove
   // the number of submatrices on one axis of the matrix
-  blockDIM = DIM / localDIM;
+  // blockDIM = DIM / localDIM;
   // coordinates of my rank in our matrix of processors
-  myProcRow = my_rank / blockDIM;
-  myProcCol = my_rank % blockDIM;
+  // myProcRow = my_rank / blockDIM;
+  // myProcCol = my_rank % blockDIM;
 
   /* ######################   Allocate Arrays   ############################# */
   /*      Move to 1d arrays, to better align with per-subarray sending        */
@@ -114,6 +123,32 @@ int main(int argc, char **argv) {
     sleep(1);
   }
   
+  /* ######################  Pre-Shift Arrays  ############################## */
+  // Each rank must get both source and destination ranks for MPI_Send_recv
+  // MPI_Cart_shift can deduce these from our cartesian communicator and some params
+  // The negative sign on my_coords indicates left/up shift rather than right/down
+  MPI_Status status;
+
+  MPI_Cart_shift(comm_cart, ROW, -my_coords[COL], &src, &dest);
+  // printf("r: %d shift: %d src: %d dest: %d\n", my_cart_rank, -my_coords[COL], src, dest);
+  MPI_Sendrecv_replace(my_arrA, localN, MPI_INT, dest, 0, src, 0, comm_cart, &status);
+
+  MPI_Cart_shift(comm_cart, COL, -my_coords[ROW], &src, &dest);
+  // printf("r: %d coords: %d src: %d dest: %d\n", my_cart_rank, -my_coords[ROW], src, dest);
+  MPI_Sendrecv_replace(my_arrB, localN, MPI_INT, dest, 1, src, 1, comm_cart, &status);
+
+  if(DIAGNOSTICS){
+    print_dist_mat(my_arrA, "A", localDIM, nprocs, my_rank, comm_cart);
+    MPI_Barrier(comm_cart);
+    sleep(1);
+    print_dist_mat(my_arrB, "B", localDIM, nprocs, my_rank, comm_cart);
+    MPI_Barrier(comm_cart);
+    sleep(1);
+    print_dist_mat_ul(my_arrC, "C", localDIM, nprocs, my_rank, comm_cart);
+    MPI_Barrier(comm_cart);
+    sleep(1);
+  }
+
   /* ###########################  Cleanup  ################################## */
   free(my_arrA);
   free(my_arrB);
