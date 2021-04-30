@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
   /* ####################   Create rank topology ############################ */
   // We can create a topology-aware communicator, and use it to simplify comms code
   MPI_Comm comm_cart;
-  int proc_dims[N_PROC_DIMS] = {nprocs_per_dim, nprocs_per_dim};
+  int proc_dims[N_PROC_DIMS] = {(int) nprocs_per_dim, (int) nprocs_per_dim};
   // We want both x and y dimensions to be periodic (i.e. to wrap), so [True, True]
   int is_periodic[N_PROC_DIMS] = {1, 1};
   // There's nothing special about the order of our ranks in WORLD, so re-ordering

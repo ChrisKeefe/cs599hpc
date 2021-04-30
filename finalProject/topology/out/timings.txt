@@ -1,0 +1,154 @@
+topology_fixed_1_1
+Global Max Elapsed Time: 28.671000
+Global Max Elapsed Time: 29.007385
+Global Max Elapsed Time: 28.449146
+Global Max Elapsed Time: 28.684660
+Global Max Elapsed Time: 28.667346
+Global Max Elapsed Time: 28.522513
+Global Max Elapsed Time: 28.594933
+Global Max Elapsed Time: 28.882820
+Global Max Elapsed Time: 28.624808
+Global Max Elapsed Time: 28.465442
+topology_fixed_1_4
+Global Max Elapsed Time: 7.947498
+Global Max Elapsed Time: 8.086149
+Global Max Elapsed Time: 7.934462
+Global Max Elapsed Time: 7.879148
+Global Max Elapsed Time: 7.999666
+Global Max Elapsed Time: 7.974326
+Global Max Elapsed Time: 8.154841
+Global Max Elapsed Time: 7.981407
+Global Max Elapsed Time: 8.003078
+Global Max Elapsed Time: 8.153797
+topology_fixed_1_16
+Global Max Elapsed Time: 1.732725
+Global Max Elapsed Time: 1.729236
+Global Max Elapsed Time: 1.695231
+Global Max Elapsed Time: 1.716192
+Global Max Elapsed Time: 1.707879
+Global Max Elapsed Time: 1.714437
+Global Max Elapsed Time: 1.719540
+Global Max Elapsed Time: 1.737577
+Global Max Elapsed Time: 1.713021
+Global Max Elapsed Time: 1.717353
+topology_fixed_1_64
+Global Max Elapsed Time: 0.564912
+Global Max Elapsed Time: 0.560920
+Global Max Elapsed Time: 0.566442
+Global Max Elapsed Time: 0.561166
+Global Max Elapsed Time: 0.564399
+Global Max Elapsed Time: 0.566301
+Global Max Elapsed Time: 0.567154
+Global Max Elapsed Time: 0.564572
+Global Max Elapsed Time: 0.567427
+Global Max Elapsed Time: 0.565330
+topology_fixed_2_4
+Global Max Elapsed Time: 6.736136
+Global Max Elapsed Time: 6.716811
+Global Max Elapsed Time: 6.781653
+Global Max Elapsed Time: 6.751581
+Global Max Elapsed Time: 6.747707
+Global Max Elapsed Time: 6.792567
+Global Max Elapsed Time: 6.828692
+Global Max Elapsed Time: 6.701172
+Global Max Elapsed Time: 6.778893
+Global Max Elapsed Time: 6.795957
+topology_fixed_2_16
+Global Max Elapsed Time: 1.698974
+Global Max Elapsed Time: 1.717633
+Global Max Elapsed Time: 1.720184
+Global Max Elapsed Time: 1.725273
+Global Max Elapsed Time: 1.708848
+Global Max Elapsed Time: 1.708887
+Global Max Elapsed Time: 1.715017
+Global Max Elapsed Time: 1.698282
+Global Max Elapsed Time: 1.696266
+Global Max Elapsed Time: 1.715268
+topology_fixed_2_64
+Global Max Elapsed Time: 0.516521
+Global Max Elapsed Time: 0.504097
+Global Max Elapsed Time: 0.497430
+Global Max Elapsed Time: 0.516261
+Global Max Elapsed Time: 0.518694
+Global Max Elapsed Time: 0.503516
+Global Max Elapsed Time: 0.508527
+Global Max Elapsed Time: 0.496810
+Global Max Elapsed Time: 0.496872
+Global Max Elapsed Time: 0.496973
+topology_fixed_4_4
+Global Max Elapsed Time: 6.709910
+Global Max Elapsed Time: 6.762966
+Global Max Elapsed Time: 6.757211
+Global Max Elapsed Time: 6.787975
+Global Max Elapsed Time: 6.762632
+Global Max Elapsed Time: 6.931086
+Global Max Elapsed Time: 6.793116
+Global Max Elapsed Time: 6.776535
+Global Max Elapsed Time: 7.014374
+Global Max Elapsed Time: 6.764567
+topology_fixed_4_16
+Global Max Elapsed Time: 1.707405
+Global Max Elapsed Time: 1.700238
+Global Max Elapsed Time: 1.704592
+Global Max Elapsed Time: 1.701077
+Global Max Elapsed Time: 1.701622
+Global Max Elapsed Time: 1.716807
+Global Max Elapsed Time: 1.704966
+Global Max Elapsed Time: 1.702079
+Global Max Elapsed Time: 1.704640
+Global Max Elapsed Time: 1.702681
+topology_fixed_4_64
+Global Max Elapsed Time: 0.466285
+Global Max Elapsed Time: 0.472867
+Global Max Elapsed Time: 0.467314
+Global Max Elapsed Time: 0.466848
+Global Max Elapsed Time: 0.467380
+Global Max Elapsed Time: 0.989094
+Global Max Elapsed Time: 0.465478
+Global Max Elapsed Time: 0.476763
+Global Max Elapsed Time: 0.471233
+Global Max Elapsed Time: 0.469892
+topology_fixed_4_256
+Global Max Elapsed Time: 0.177935
+Global Max Elapsed Time: 0.175440
+Global Max Elapsed Time: 0.176372
+Global Max Elapsed Time: 0.176465
+Global Max Elapsed Time: 0.177118
+Global Max Elapsed Time: 0.174960
+Global Max Elapsed Time: 0.173730
+Global Max Elapsed Time: 0.179392
+Global Max Elapsed Time: 0.178024
+Global Max Elapsed Time: 0.179948
+topology_fixed_8_16
+Global Max Elapsed Time: 1.699192
+Global Max Elapsed Time: 1.701679
+Global Max Elapsed Time: 1.700541
+Global Max Elapsed Time: 1.700241
+Global Max Elapsed Time: 1.699307
+Global Max Elapsed Time: 1.699244
+Global Max Elapsed Time: 1.701229
+Global Max Elapsed Time: 1.700113
+Global Max Elapsed Time: 1.698644
+Global Max Elapsed Time: 1.701378
+topology_fixed_8_64
+Global Max Elapsed Time: 0.456971
+Global Max Elapsed Time: 0.463011
+Global Max Elapsed Time: 0.457775
+Global Max Elapsed Time: 0.455471
+Global Max Elapsed Time: 0.461896
+Global Max Elapsed Time: 0.453485
+Global Max Elapsed Time: 0.459543
+Global Max Elapsed Time: 0.459528
+Global Max Elapsed Time: 0.458436
+Global Max Elapsed Time: 0.452731
+topology_fixed_8_256
+Global Max Elapsed Time: 0.154594
+Global Max Elapsed Time: 0.155568
+Global Max Elapsed Time: 0.155513
+Global Max Elapsed Time: 0.159531
+Global Max Elapsed Time: 0.156623
+Global Max Elapsed Time: 0.155406
+Global Max Elapsed Time: 0.157783
+Global Max Elapsed Time: 0.158713
+Global Max Elapsed Time: 0.156483
+Global Max Elapsed Time: 0.153938

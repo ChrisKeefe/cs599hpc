@@ -1,10 +1,10 @@
 CC = mpicc
 # CFLAGS = ""
 LFLAGS = -lm
-FIXED = cannon_cartesian
+FIXED = topology_fixed
 RAND = cannon_random
 NP = 4
-DIM = 128
+DIM = 16
 DIAGNOSTICS = 0
 HOST = ../myhostfile.txt
 
